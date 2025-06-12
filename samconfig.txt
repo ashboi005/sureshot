@@ -1,0 +1,22 @@
+version = 0.1
+
+[default.deploy.parameters]
+stack_name = "your-app-name-backend"
+resolve_s3 = true
+s3_prefix = "your-app-name"
+region = "your-aws-region"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+image_repositories = []
+
+# Pass parameter values to the stack
+parameter_overrides = "SupabaseUrl=\"YOUR_SUPABASE_URL\" SupabaseAnonKey=\"YOUR_SUPABASE_ANON_KEY\" SupabaseServiceRoleKey=\"YOUR_SUPABASE_SERVICE_ROLE_KEY\" DatabaseUrl=\"YOUR_DATABASE_URL\" JwtSecretKey=\"YOUR_JWT_SECRET_KEY\" SupabaseStorageBucket=\"YOUR_STORAGE_BUCKET\""
+profile = "your-aws-profile"
+
+[default.deploy.environment]
+SUPABASE_URL = "YOUR_SUPABASE_URL"
+SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY"
+SUPABASE_SERVICE_ROLE_KEY = "YOUR_SUPABASE_SERVICE_ROLE_KEY"
+DATABASE_URL = "YOUR_DATABASE_URL"
+JWT_SECRET_KEY = "YOUR_JWT_SECRET_KEY"
+SUPABASE_STORAGE_BUCKET = "YOUR_STORAGE_BUCKET"
