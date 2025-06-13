@@ -1,16 +1,32 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, date
+
+class CreateUserProfileRequest(BaseModel):
+    baby_name: str
+    baby_date_of_birth: date
+    parent_name: str
+    parent_mobile: str
+    parent_email: EmailStr
+    gender: Optional[str] = None
+    blood_group: Optional[str] = None
+    address: str
+    city: str
+    state: str
+    pin_code: str
 
 class UserProfileUpdate(BaseModel):
-    username: Optional[str] = None
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
-    display_name: Optional[str] = None
-    bio: Optional[str] = None
-    date_of_birth: Optional[datetime] = None
-    timezone: Optional[str] = None
-    language: Optional[str] = None
+    baby_name: Optional[str] = None
+    baby_date_of_birth: Optional[date] = None
+    parent_name: Optional[str] = None
+    parent_mobile: Optional[str] = None
+    parent_email: Optional[EmailStr] = None
+    gender: Optional[str] = None
+    blood_group: Optional[str] = None
+    address: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    pin_code: Optional[str] = None
 
 class ProfileImageUpload(BaseModel):
     """Response schema for profile image upload"""
@@ -21,16 +37,18 @@ class UserProfileResponse(BaseModel):
     id: str
     user_id: str
     email: str
-    username: Optional[str] = None
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
-    display_name: Optional[str] = None
-    bio: Optional[str] = None
+    baby_name: str
+    baby_date_of_birth: date
+    parent_name: str
+    parent_mobile: str
+    parent_email: EmailStr
+    gender: Optional[str] = None
+    blood_group: Optional[str] = None
+    address: str
+    city: str
+    state: str
+    pin_code: str
     avatar_url: Optional[str] = None
-    date_of_birth: Optional[datetime] = None
-    timezone: Optional[str] = None
-    language: Optional[str] = None
-    preferences: Optional[dict] = None
     created_at: datetime
     updated_at: datetime
 
@@ -38,18 +56,17 @@ class UserProfileResponse(BaseModel):
         from_attributes = True
 
 class UserProfilePublic(BaseModel):
-    """Public profile information (without email)"""
+    """Public profile information (without email and sensitive details)"""
     id: str
     user_id: str
-    username: Optional[str] = None
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
-    display_name: Optional[str] = None
-    bio: Optional[str] = None
+    baby_name: str
+    baby_date_of_birth: date
+    parent_name: str
+    gender: Optional[str] = None
+    blood_group: Optional[str] = None
+    city: str
+    state: str
     avatar_url: Optional[str] = None
-    date_of_birth: Optional[datetime] = None
-    timezone: Optional[str] = None
-    language: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 

@@ -3,14 +3,16 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from config import get_db, get_supabase_client
-from models import UserProfile
+from models import UserProfile, AccountType
 from .schemas import (
     UserRegister, 
     UserLogin, 
     AuthResponse, 
     UserResponse,
     TokenResponse,
+    AccountTypeResponse,
     ForgotPasswordRequest,
+    VerifyResetTokenRequest,
     ResetPasswordRequest
 )
 from .helpers import auth_helpers
@@ -92,7 +94,6 @@ async def register(
         db.add(new_user_profile)
         await db.commit()
         await db.refresh(new_user_profile)
-        
         user_response = UserResponse(
             id=str(new_user_profile.id),
             user_id=str(new_user_profile.user_id),
@@ -105,6 +106,7 @@ async def register(
             date_of_birth=new_user_profile.date_of_birth,
             timezone=new_user_profile.timezone,
             language=new_user_profile.language,
+            account_type=new_user_profile.account_type,
             preferences=new_user_profile.preferences,
             created_at=new_user_profile.created_at,
             updated_at=new_user_profile.updated_at
@@ -149,9 +151,21 @@ async def login(
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid email or password"
-            )     
+            )
+        
+        # Convert Supabase user ID to UUID for proper comparison
+        try:
+            from uuid import UUID
+            supabase_user_id = UUID(str(auth_response.user.id))
+        except (ValueError, TypeError) as e:
+            logger.error(f"Invalid user ID from Supabase: {auth_response.user.id}, error: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Invalid user ID format"
+            )
+        
         result = await db.execute(
-            select(UserProfile).where(UserProfile.user_id == auth_response.user.id)
+            select(UserProfile).where(UserProfile.user_id == supabase_user_id)
         )
         user_profile = result.scalar_one_or_none()
         
@@ -160,6 +174,12 @@ async def login(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="User profile not found"
             )
+        
+        # Handle account_type safely
+        account_type = getattr(user_profile, 'account_type', AccountType.USER)
+        if not isinstance(account_type, AccountType):
+            logger.warning(f"Invalid account_type value: {account_type} of type {type(account_type)}, defaulting to USER")
+            account_type = AccountType.USER
         
         user_response = UserResponse(
             id=str(user_profile.id),
@@ -173,6 +193,7 @@ async def login(
             date_of_birth=user_profile.date_of_birth,
             timezone=user_profile.timezone,
             language=user_profile.language,
+            account_type=account_type,
             preferences=user_profile.preferences,            
             created_at=user_profile.created_at,
             updated_at=user_profile.updated_at
@@ -221,12 +242,12 @@ async def forgot_password(
         from config import ENVIRONMENT
         
         if ENVIRONMENT == "prod":
-            redirect_url = "https://yourdomain.com/reset-password"
+            redirect_url = "http://localhost:3000/auth/login"
         elif ENVIRONMENT == "dev":
-            redirect_url = "http://localhost:3000/reset-password"
+            redirect_url = "http://localhost:8000/verify-reset-token"
         else:
-            redirect_url = "http://localhost:3000/reset-password"
-        
+            redirect_url = "http://localhost:8000/verify-reset-token"
+
         response = supabase.auth.reset_password_email(
             request_data.email,
             options={"redirect_to": redirect_url}
@@ -238,15 +259,14 @@ async def forgot_password(
         logger.error(f"Password reset email failed: {str(e)}")
         return {"message": "If an account with that email exists, a password reset link has been sent."}
     
-@router.get("/verify-reset-token")
+@router.post("/verify-reset-token")
 async def verify_reset_token(
-    access_token: str,
-    refresh_token: str
+    token_data: VerifyResetTokenRequest
 ):
     try:
         response = supabase.auth.set_session(
-            access_token=access_token,
-            refresh_token=refresh_token
+            access_token=token_data.access_token,
+            refresh_token=token_data.refresh_token
         )
         
         if not response.session:
@@ -255,7 +275,6 @@ async def verify_reset_token(
                 detail="Invalid or expired reset tokens"
             )
         
-        supabase.auth.sign_out()
         
         return {
             "message": "Reset tokens are valid",
@@ -289,7 +308,6 @@ async def reset_password(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Invalid or expired reset tokens"
             )
-        
         update_response = supabase.auth.update_user({
             "password": reset_data.new_password
         })
@@ -308,10 +326,30 @@ async def reset_password(
         logger.error(f"Password reset failed: {str(e)}")
         if isinstance(e, HTTPException):
             raise e
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Password reset failed. Please try requesting a new reset link."
-        )
+        
+        # Parse Supabase error messages for more specific feedback
+        error_message = str(e).lower()
+        
+        if "new password should be different from the old password" in error_message:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="New password must be different from your current password."
+            )
+        elif "password should be at least" in error_message:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Password does not meet minimum requirements."
+            )
+        elif "session" in error_message and ("not exist" in error_message or "invalid" in error_message):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid or expired reset tokens. Please request a new password reset."
+            )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Password reset failed. Please try requesting a new reset link."
+            )
 
 @router.post("/logout")
 async def logout(
@@ -325,5 +363,30 @@ async def logout(
         
     except Exception as e:
         logger.error(f"Logout failed: {str(e)}")
-        return {"message": "Logout completed"}  
+        return {"message": "Logout completed"}
+
+@router.get("/account-type", response_model=AccountTypeResponse)
+async def get_account_type(
+    current_user = Depends(get_current_user)
+):
+    """Get the account type of the current user"""
+    try:
+        user_profile = current_user["profile"]
+        account_type = getattr(user_profile, 'account_type', AccountType.USER)
+        
+        if not isinstance(account_type, AccountType):
+            logger.warning(f"Invalid account_type value: {account_type} of type {type(account_type)}, defaulting to USER")
+            account_type = AccountType.USER
+        
+        return AccountTypeResponse(account_type=account_type)
+        
+    except Exception as e:
+        logger.error(f"Get account type failed: {str(e)}")
+        if isinstance(e, HTTPException):
+            raise e
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get account type"
+        )
+
 
