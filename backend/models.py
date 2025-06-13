@@ -145,10 +145,6 @@ class UserProfile(Base):
     bio: Mapped[Optional[str]] = mapped_column(Text)
     avatar_url: Mapped[Optional[str]] = mapped_column(String(500))
     date_of_birth: Mapped[Optional[DateTime]] = mapped_column(DateTime(True))
-    timezone: Mapped[Optional[str]] = mapped_column(String(50))
-    language: Mapped[Optional[str]] = mapped_column(String(10), default="en")
-    
-    preferences: Mapped[Optional[dict]] = mapped_column(JSONB, default=dict)
     
     created_at: Mapped[DateTime] = mapped_column(
         DateTime(True), 
