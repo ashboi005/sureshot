@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from mangum import Mangum
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, Response
 from fastapi import Request, HTTPException
 import os
 import asyncio
@@ -102,6 +102,22 @@ app.include_router(admin_router)
 app.include_router(workers_router)
 app.include_router(vaccines_router)
 app.include_router(doctors_router)
+
+# Add explicit CORS preflight handler
+@app.options("/{full_path:path}")
+async def options_handler(request: Request):
+    """Handle CORS preflight requests"""
+    return Response(
+        content="",
+        status_code=200,
+        headers={
+            "Access-Control-Allow-Origin": request.headers.get("origin", "*"),
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, PATCH",
+            "Access-Control-Allow-Headers": "Authorization, Content-Type, Accept, Origin, User-Agent, DNT, Cache-Control, X-Mx-ReqToken, Keep-Alive, X-Requested-With, If-Modified-Since, X-CSRF-Token",
+            "Access-Control-Allow-Credentials": "true",
+            "Access-Control-Max-Age": "86400"
+        }
+    )
 
 @app.on_event("startup")
 async def startup_event():

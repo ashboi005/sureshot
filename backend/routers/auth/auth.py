@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from config import get_db, get_supabase_client
 from models import UserProfile, AccountType
+import logging
 from .schemas import (
     UserRegister, 
     UserLogin, 
@@ -71,7 +72,7 @@ async def register(
             "password": user_data.password,
             "options": {
                 "data": {
-                    "username": user_data.username,
+                    "username": user_data.username,                    
                     "first_name": user_data.first_name,
                     "last_name": user_data.last_name
                 }
@@ -82,18 +83,37 @@ async def register(
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Failed to create user account"
-            )       
+            )
+            
         supabase_user_id = auth_response.user.id
-        new_user_profile = UserProfile(
-            user_id=supabase_user_id,  
-            username=user_data.username,
-            first_name=user_data.first_name,
-            last_name=user_data.last_name
-        )
         
-        db.add(new_user_profile)
-        await db.commit()
-        await db.refresh(new_user_profile)
+        try:
+            new_user_profile = UserProfile(
+                user_id=supabase_user_id,  
+                username=user_data.username,
+                first_name=user_data.first_name,
+                last_name=user_data.last_name
+            )
+            
+            db.add(new_user_profile)
+            await db.commit()
+            await db.refresh(new_user_profile)
+            logger.info(f"Successfully created user profile for user {supabase_user_id}")
+            
+        except Exception as profile_error:
+            logger.error(f"Failed to create user profile for user {supabase_user_id}: {str(profile_error)}")
+            await db.rollback()
+            # Try to delete the auth user if profile creation fails
+            try:
+                supabase.auth.admin.delete_user(supabase_user_id)
+                logger.info(f"Cleaned up auth user {supabase_user_id} after profile creation failure")
+            except Exception as cleanup_error:
+                logger.error(f"Failed to cleanup auth user: {str(cleanup_error)}")
+            
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Registration failed: {str(profile_error)}"
+            )
         user_response = UserResponse(
             id=str(new_user_profile.id),
             user_id=str(new_user_profile.user_id),

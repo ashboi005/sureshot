@@ -37,17 +37,17 @@ class UserProfileResponse(BaseModel):
     id: str
     user_id: str
     email: str
-    baby_name: str
-    baby_date_of_birth: date
-    parent_name: str
-    parent_mobile: str
-    parent_email: EmailStr
+    baby_name: Optional[str] = None
+    baby_date_of_birth: Optional[date] = None
+    parent_name: Optional[str] = None
+    parent_mobile: Optional[str] = None
+    parent_email: Optional[EmailStr] = None
     gender: Optional[str] = None
     blood_group: Optional[str] = None
-    address: str
-    city: str
-    state: str
-    pin_code: str
+    address: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    pin_code: Optional[str] = None
     avatar_url: Optional[str] = None
     created_at: datetime
     updated_at: datetime
@@ -59,13 +59,13 @@ class UserProfilePublic(BaseModel):
     """Public profile information (without email and sensitive details)"""
     id: str
     user_id: str
-    baby_name: str
-    baby_date_of_birth: date
-    parent_name: str
+    baby_name: Optional[str] = None
+    baby_date_of_birth: Optional[date] = None
+    parent_name: Optional[str] = None
     gender: Optional[str] = None
     blood_group: Optional[str] = None
-    city: str
-    state: str
+    city: Optional[str] = None
+    state: Optional[str] = None
     avatar_url: Optional[str] = None
     created_at: datetime
     updated_at: datetime

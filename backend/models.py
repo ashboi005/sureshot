@@ -426,12 +426,11 @@ class DriveParticipant(Base):
     is_vaccinated: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     vaccination_date: Mapped[Optional[DateTime]] = mapped_column(DateTime(True), nullable=True)
     notes: Mapped[Optional[str]] = mapped_column(Text)
-    
-    # Cached user info for worker convenience
-    baby_name: Mapped[str] = mapped_column(String(100), nullable=False)
-    parent_name: Mapped[str] = mapped_column(String(100), nullable=False)
-    parent_mobile: Mapped[str] = mapped_column(String(20), nullable=False)
-    address: Mapped[str] = mapped_column(Text, nullable=False)
+      # Cached user info for worker convenience
+    baby_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    parent_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    parent_mobile: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
+    address: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     
     created_at: Mapped[DateTime] = mapped_column(
         DateTime(True), 

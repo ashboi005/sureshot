@@ -11,10 +11,10 @@ class DriveParticipantResponse(BaseModel):
     """Response schema for drive participant"""
     id: str
     user_id: str
-    baby_name: str
-    parent_name: str
-    parent_mobile: str
-    address: str
+    baby_name: Optional[str] = None
+    parent_name: Optional[str] = None
+    parent_mobile: Optional[str] = None
+    address: Optional[str] = None
     is_vaccinated: bool
     vaccination_date: Optional[datetime] = None
     worker_id: Optional[str] = None
@@ -45,7 +45,7 @@ class AdministerDriveVaccineResponse(BaseModel):
     """Response schema for administered vaccine in a drive"""
     id: str
     user_id: str
-    baby_name: str
+    baby_name: Optional[str] = None
     is_vaccinated: bool
     vaccination_date: datetime
     worker_id: str
