@@ -355,11 +355,9 @@ async def get_active_vaccination_drives(
     Get active vaccination drives in user's city where they haven't participated yet
     """
     try:
-        # Get user profile to find their city
-        profile_result = await db.execute(
-            select(UserProfile).where(UserProfile.user_id == current_user.id)
-        )
-        profile = profile_result.scalar_one_or_none()
+        # Get user data from current_user
+        supabase_user = current_user["supabase_user"]
+        profile = current_user["profile"]
         
         if not profile:
             raise HTTPException(
@@ -382,13 +380,12 @@ async def get_active_vaccination_drives(
         
         # Filter out drives where user has already participated
         available_drives = []
-        for drive in active_drives:
-            # Check if user has already participated in this drive
+        for drive in active_drives:            # Check if user has already participated in this drive
             participant_check = await db.execute(
                 select(DriveParticipant).where(
                     and_(
                         DriveParticipant.vaccination_drive_id == drive.id,
-                        DriveParticipant.user_id == current_user.id
+                        DriveParticipant.user_id == supabase_user.id
                     )
                 )
             )
