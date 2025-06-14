@@ -6,7 +6,7 @@ from config import get_db
 from models import WorkerDetails, VaccinationDrive, DriveWorkerAssignment, DriveParticipant, AccountType, UserProfile
 from routers.auth.auth import get_current_user
 from routers.admin.schemas import VaccinationDriveResponse, WorkerResponse, VaccinationDriveListResponse, DocumentUploadResponse
-from .schemas import DriveParticipantResponse, DriveParticipantListResponse, AdministerDriveVaccineRequest, AdministerDriveVaccineResponse
+from .schemas import DriveParticipantResponse, DriveParticipantListResponse, AdministerDriveVaccineRequest, AdministerDriveVaccineResponse, WorkerIdResponse
 from .helpers import upload_worker_profile_document, send_drive_vaccination_confirmation
 from typing import Optional
 import logging
@@ -19,6 +19,48 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/workers", tags=["Workers"])
 
 security = HTTPBearer()
+
+@router.get("/get-worker-id/{user_id}", response_model=WorkerIdResponse)
+async def get_worker_id_by_user_id(
+    user_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    """Get worker_id for a given user_id"""
+    try:
+        # Convert string to UUID
+        user_uuid = uuid.UUID(user_id)
+        
+        # Query worker details by user_id
+        stmt = select(WorkerDetails).where(WorkerDetails.user_id == user_uuid)
+        result = await db.execute(stmt)
+        worker = result.scalar_one_or_none()
+        
+        if not worker:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Worker profile not found for user_id: {user_id}"
+            )
+        
+        return {
+            "user_id": str(worker.user_id),
+            "worker_id": str(worker.id),
+            "city_name": worker.city_name,
+            "specialization": worker.specialization,
+            "experience_years": worker.experience_years,
+            "is_active": worker.is_active
+        }
+        
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid user_id format"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error retrieving worker information: {str(e)}"
+        )
 
 async def get_worker_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),

@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
+from sqlalchemy.orm import selectinload
 from config import get_db, get_supabase_client
-from models import UserProfile, VaccineTemplate, VaccinationRecord, VaccinationDrive, DriveParticipant
+from models import UserProfile, VaccineTemplate, VaccinationRecord, VaccinationDrive, DriveParticipant, VaccinationReminder, ReminderType
 from routers.auth.auth import get_current_user
 from .schemas import (
     UserProfileUpdate,
@@ -24,18 +25,21 @@ router = APIRouter(prefix="/users", tags=["Users"])
 async def create_vaccination_records_for_baby(db: AsyncSession, user_id: uuid.UUID, baby_birth_date: datetime.date):
     """
     Automatically create vaccination records for a new baby based on vaccine templates
+    Also creates reminder records for each vaccination
     """
     try:
-        # Get all vaccine templates
-        templates_result = await db.execute(select(VaccineTemplate))
+        # Get all vaccine templates with their relationships
+        templates_result = await db.execute(
+            select(VaccineTemplate).options(selectinload(VaccineTemplate.vaccination_records))
+        )
         templates = templates_result.scalars().all()
         
         if not templates:
             logger.warning("No vaccine templates found in database")
             return 0
-        
-        # Create vaccination records for each template and dose
+          # Create vaccination records for each template and dose
         vaccination_records = []
+        vaccination_to_template = {}  # Map vaccination records to their templates
         
         for template in templates:
             for dose_number in range(1, template.total_doses + 1):
@@ -52,12 +56,32 @@ async def create_vaccination_records_for_baby(db: AsyncSession, user_id: uuid.UU
                 )
                 
                 vaccination_records.append(vaccination_record)
+                vaccination_to_template[vaccination_record] = template
         
         # Add all records to database
         db.add_all(vaccination_records)
-        await db.flush()  # Flush to get IDs but don't commit yet
+        await db.flush()  # Flush to get IDs for reminder creation
         
-        logger.info(f"Created {len(vaccination_records)} vaccination records for baby {user_id}")
+        # Create reminder records for each vaccination record
+        reminder_records = []
+        for vaccination_record in vaccination_records:
+            template = vaccination_to_template[vaccination_record]
+            
+            for reminder_type in ReminderType:
+                reminder = VaccinationReminder(
+                    vaccination_record_id=vaccination_record.id,
+                    user_id=vaccination_record.user_id,
+                    vaccine_name=f"{template.vaccine_name} (Dose {vaccination_record.dose_number})",
+                    due_date=vaccination_record.due_date,
+                    reminder_type=reminder_type
+                )
+                reminder_records.append(reminder)
+        
+        # Add all reminder records
+        db.add_all(reminder_records)
+        await db.flush()  # Flush reminder records but don't commit yet
+        
+        logger.info(f"Created {len(vaccination_records)} vaccination records and {len(reminder_records)} reminder records for baby {user_id}")
         return len(vaccination_records)
         
     except Exception as e:
@@ -77,14 +101,13 @@ async def get_current_user_profile(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User profile not found. Please create a profile first."
         )
-    
     return UserProfileResponse(
         id=str(profile.id),
         user_id=str(profile.user_id),
         username=profile.username,
         email=supabase_user.email,
         baby_name=profile.baby_name,
-        baby_date_of_birth=profile.baby_date_of_birth,
+        baby_date_of_birth=profile.baby_date_of_birth.date() if isinstance(profile.baby_date_of_birth, datetime) else profile.baby_date_of_birth,
         parent_name=profile.parent_name,
         parent_mobile=profile.parent_mobile,
         parent_email=profile.parent_email,

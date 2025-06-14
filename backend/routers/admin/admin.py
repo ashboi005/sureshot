@@ -318,13 +318,10 @@ async def create_doctor(
         
         db.add(new_user_profile)
         await db.flush()
-        
-        # Create doctor details
+          # Create doctor details
         doctor_details = DoctorDetails(
             user_id=auth_response.user.id,
-            medical_license_number=doctor_data.medical_license_number,
-            medical_council_registration=doctor_data.medical_council_registration,
-            license_photo_url=doctor_data.license_photo_url,
+            medical_council_registration_url=doctor_data.medical_council_registration_url,
             specialization=doctor_data.specialization,
             hospital_affiliation=doctor_data.hospital_affiliation,
             experience_years=doctor_data.experience_years
@@ -333,13 +330,10 @@ async def create_doctor(
         db.add(doctor_details)
         await db.commit()
         await db.refresh(doctor_details)
-        
         return DoctorResponse(
             id=str(doctor_details.id),
             user_id=str(doctor_details.user_id),
-            medical_license_number=doctor_details.medical_license_number,
-            medical_council_registration=doctor_details.medical_council_registration,
-            license_photo_url=doctor_details.license_photo_url,
+            medical_council_registration_url=doctor_details.medical_council_registration_url,
             specialization=doctor_details.specialization,
             hospital_affiliation=doctor_details.hospital_affiliation,
             experience_years=doctor_details.experience_years,
@@ -386,13 +380,10 @@ async def get_doctors(
                 select(UserProfile).where(UserProfile.user_id == doctor.user_id)
             )
             profile = profile_result.scalar_one_or_none()
-            
             doctor_responses.append(DoctorResponse(
                 id=str(doctor.id),
                 user_id=str(doctor.user_id),
-                medical_license_number=doctor.medical_license_number,
-                medical_council_registration=doctor.medical_council_registration,
-                license_photo_url=doctor.license_photo_url,
+                medical_council_registration_url=doctor.medical_council_registration_url,
                 specialization=doctor.specialization,
                 hospital_affiliation=doctor.hospital_affiliation,
                 experience_years=doctor.experience_years,
@@ -608,4 +599,78 @@ async def get_vaccination_drives(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve vaccination drives"
+        )
+
+@router.post("/generate-all-vaccination-schedules")
+async def generate_vaccination_schedules_for_all_users(
+    current_admin = Depends(get_admin_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Admin endpoint to generate vaccination schedules for all users who don't have them
+    This is useful for existing users who were created before the auto-generation feature
+    """
+    try:
+        from routers.vaccines.vaccines import generate_vaccination_schedule_for_user
+        
+        # Get all user profiles with baby birth dates
+        profiles_query = select(UserProfile).where(
+            UserProfile.baby_date_of_birth.isnot(None)
+        )
+        result = await db.execute(profiles_query)
+        profiles = result.scalars().all()
+        
+        total_users = len(profiles)
+        processed_users = 0
+        total_records_created = 0
+        errors = []
+        
+        logger.info(f"Starting vaccination schedule generation for {total_users} users")
+        
+        for profile in profiles:
+            try:
+                created_count = await generate_vaccination_schedule_for_user(
+                    db, 
+                    profile.user_id, 
+                    profile.baby_date_of_birth
+                )
+                
+                if created_count > 0:
+                    total_records_created += created_count
+                    logger.info(f"Created {created_count} records for user {profile.baby_name}")
+                
+                processed_users += 1
+                
+            except Exception as e:
+                error_msg = f"Failed to create schedule for user {profile.baby_name} ({profile.user_id}): {str(e)}"
+                logger.error(error_msg)
+                errors.append(error_msg)
+                continue
+        
+        await db.commit()
+        
+        result_message = f"Processed {processed_users}/{total_users} users. Created {total_records_created} vaccination records."
+        
+        if errors:
+            result_message += f" {len(errors)} errors occurred."
+        
+        logger.info(f"Vaccination schedule generation completed: {result_message}")
+        
+        return {
+            "message": "Vaccination schedule generation completed",
+            "summary": {
+                "total_users_found": total_users,
+                "users_processed": processed_users,
+                "total_records_created": total_records_created,
+                "errors_count": len(errors)
+            },
+            "errors": errors if errors else None
+        }
+        
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"Error in bulk vaccination schedule generation: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate vaccination schedules: {str(e)}"
         )
