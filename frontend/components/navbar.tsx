@@ -51,7 +51,7 @@ const router = useRouter()
           {user && (
             <div className="flex items-center space-x-3">
               <div className="hidden md:block text-right">
-                <p className="text-sm font-medium">{user.email}</p>
+                <p className="text-sm font-medium">{user.username}</p>
                 <p className="text-xs text-muted-foreground">{user.email}</p>
               </div>
               
@@ -69,7 +69,7 @@ const router = useRouter()
                 <DropdownMenuContent className="w-64" align="end" forceMount>
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">{user.email}</p>
+                      <p className="text-sm font-medium leading-none">{user.username}</p>
                       <p className="text-xs leading-none text-muted-foreground">
                         {user.email}
                       </p>

@@ -58,7 +58,7 @@ import {
 
 export const schema = z.object({
   id: z.string(),
-  vaccination_name: z.string(),
+  vaccine_name: z.string(),
   dose_number: z.number(),
   administered_date: z.string(),
   disease_prevented: z.string(),
@@ -91,7 +91,7 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
   {
     accessorKey: "vaccination_name",
     header: "Vaccine Name",
-    cell: ({ row }) => <div className="font-medium">{row.original.vaccination_name}</div>,
+    cell: ({ row }) => <div className="font-medium">{row.original.vaccine_name}</div>,
   },
   {
     accessorKey: "dose_number",
@@ -145,11 +145,13 @@ interface VaccinationHistoryTableProps {
 }
 
 export function VaccinationHistoryTable({ userId }: VaccinationHistoryTableProps) {
+
   const [data, setData] = React.useState<z.infer<typeof schema>[]>([])
   const [loading, setLoading] = React.useState(true)
 
   const fetchVaccinationHistory = async () => {
     try {
+      console.log( `${process.env.NEXT_PUBLIC_API_URL}/vaccination/history/${userId}`)
       const response = await axios.get(
         `${process.env.NEXT_PUBLIC_API_URL}/vaccination/history/${userId}`,
         {

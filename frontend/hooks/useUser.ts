@@ -21,8 +21,9 @@ const useUser = () => {
             },
           }
         );
-        
+        console.log("User data fetched:", response.data);
         setUser(response.data);
+        
       } catch (err) {
         const error = err instanceof Error ? err : new Error('Failed to fetch user');
         setError(error);
