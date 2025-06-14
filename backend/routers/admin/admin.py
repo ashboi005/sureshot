@@ -19,7 +19,7 @@ from .schemas import (
     VaccinationDriveListResponse,
     DocumentUploadResponse
 )
-from .helpers import upload_worker_document, upload_doctor_document
+from .helpers import upload_worker_document, upload_doctor_document, create_drive_participants, notify_assigned_workers, notify_drive_participants
 from typing import Optional, List
 from datetime import datetime
 import logging
@@ -32,61 +32,6 @@ router = APIRouter(prefix="/admin", tags=["Admin"])
 
 security = HTTPBearer()
 supabase = get_supabase_client()
-
-
-async def create_drive_participants(db: AsyncSession, vaccination_drive: VaccinationDrive):
-    """
-    Auto-create drive participants for all users in the vaccination drive's city
-    """
-    try:
-        # Get all users in the same city as the vaccination drive
-        users_in_city_query = select(UserProfile).where(
-            UserProfile.city == vaccination_drive.vaccination_city
-        )
-        
-        users_result = await db.execute(users_in_city_query)
-        users_in_city = users_result.scalars().all()
-        
-        # Create participant records for each user
-        participants_created = 0
-        for user_profile in users_in_city:
-            # Check if participant already exists (in case of re-run)
-            existing_participant = await db.execute(
-                select(DriveParticipant).where(
-                    and_(
-                        DriveParticipant.vaccination_drive_id == vaccination_drive.id,
-                        DriveParticipant.user_id == user_profile.user_id
-                    )
-                )
-            )
-            
-            if existing_participant.scalar_one_or_none():
-                continue  # Skip if already exists
-            
-            # Create new participant record
-            participant = DriveParticipant(
-                vaccination_drive_id=vaccination_drive.id,
-                user_id=user_profile.user_id,
-                baby_name=user_profile.baby_name,
-                parent_name=user_profile.parent_name,
-                parent_mobile=user_profile.parent_mobile,
-                address=f"{user_profile.address}, {user_profile.city}, {user_profile.state} - {user_profile.pin_code}",
-                is_vaccinated=False
-            )
-            
-            db.add(participant)
-            participants_created += 1
-        
-        if participants_created > 0:
-            await db.commit()
-            logger.info(f"Created {participants_created} drive participants for drive {vaccination_drive.id}")
-        else:
-            logger.info(f"No new participants created for drive {vaccination_drive.id}")
-            
-    except Exception as e:
-        logger.error(f"Error creating drive participants: {str(e)}")
-        await db.rollback()
-        # Don't raise the exception - participant creation is supplementary
 
 
 async def get_admin_user(
@@ -511,8 +456,7 @@ async def create_vaccination_drive(
                     if not worker:
                         logger.warning(f"Worker {worker_id} not found, skipping assignment")
                         continue
-                    
-                    # Create assignment
+                      # Create assignment
                     assignment = DriveWorkerAssignment(
                         drive_id=vaccination_drive.id,
                         worker_id=worker_id
@@ -522,13 +466,22 @@ async def create_vaccination_drive(
                     
                 except ValueError:
                     logger.warning(f"Invalid worker ID format: {worker_id_str}")
-                    continue        
+                    continue
+        
         await db.commit()
         await db.refresh(vaccination_drive)
         
         # Auto-create drive participants for all users in the same city
         await create_drive_participants(db, vaccination_drive)
-          # Prepare worker responses
+        
+        # Send notifications to assigned workers
+        if assigned_workers:
+            await notify_assigned_workers(db, vaccination_drive, assigned_workers)
+        
+        # Send notifications to participants
+        await notify_drive_participants(db, vaccination_drive)
+        
+        # Prepare worker responses
         worker_responses = []
         for worker in assigned_workers:
             profile_result = await db.execute(

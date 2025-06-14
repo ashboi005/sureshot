@@ -526,10 +526,11 @@ class VaccinationRecord(Base):
     )
     updated_at: Mapped[DateTime] = mapped_column(
         DateTime(True), 
-        server_default=text("CURRENT_TIMESTAMP"),
-        onupdate=text("CURRENT_TIMESTAMP"),
+        server_default=text("CURRENT_TIMESTAMP"),        onupdate=text("CURRENT_TIMESTAMP"),
         nullable=False
-    )    # Relationships
+    )
+    
+    # Relationships
     user_profile: Mapped["UserProfile"] = relationship(
         "UserProfile", 
         primaryjoin="VaccinationRecord.user_id == UserProfile.user_id",
@@ -538,6 +539,7 @@ class VaccinationRecord(Base):
     )
     vaccine_template: Mapped["VaccineTemplate"] = relationship("VaccineTemplate", back_populates="vaccination_records")
     doctor: Mapped[Optional["DoctorDetails"]] = relationship("DoctorDetails", back_populates="vaccination_records")
+    reminders: Mapped[List["VaccinationReminder"]] = relationship("VaccinationReminder", back_populates="vaccination_record", cascade="all, delete-orphan")
     
     # Ensure unique dose per vaccine per user
     __table_args__ = (
@@ -582,4 +584,63 @@ class DoctorPatientRelationship(Base):
     # Ensure unique doctor-patient relationship
     __table_args__ = (
         UniqueConstraint('user_id', 'doctor_id', name='unique_doctor_patient'),
+    )
+
+
+class ReminderType(enum.Enum):
+    THIRTY_DAYS = "30_days"
+    FIFTEEN_DAYS = "15_days"
+    SEVEN_DAYS = "7_days"
+    ONE_DAY = "1_day"
+
+
+class VaccinationReminder(Base):
+    """
+    Tracks vaccination reminder notifications sent to parents
+    Prevents duplicate reminders and tracks delivery status
+    """
+    __tablename__ = "vaccination_reminders"
+    
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    vaccination_record_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), 
+        ForeignKey("vaccination_records.id", ondelete="CASCADE"),
+        nullable=False
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), 
+        ForeignKey("auth.users.id", ondelete="CASCADE"),
+        nullable=False
+    )
+    vaccine_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    due_date: Mapped[DateTime] = mapped_column(DateTime(True), nullable=False)
+    reminder_type: Mapped[ReminderType] = mapped_column(SQLAlchemyEnum(ReminderType), nullable=False)
+    
+    # Notification status tracking
+    email_sent: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    sms_sent: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    email_sent_at: Mapped[Optional[DateTime]] = mapped_column(DateTime(True), nullable=True)
+    sms_sent_at: Mapped[Optional[DateTime]] = mapped_column(DateTime(True), nullable=True)
+    
+    # Tracking
+    created_at: Mapped[DateTime] = mapped_column(
+        DateTime(True), 
+        server_default=text("CURRENT_TIMESTAMP"),
+        nullable=False
+    )
+    updated_at: Mapped[DateTime] = mapped_column(
+        DateTime(True), 
+        server_default=text("CURRENT_TIMESTAMP"),
+        nullable=False
+    )
+    
+    # Relationships
+    vaccination_record: Mapped["VaccinationRecord"] = relationship("VaccinationRecord", back_populates="reminders")
+    user: Mapped["Users"] = relationship("Users")
+    
+    # Ensure unique reminder per vaccination and type
+    __table_args__ = (
+        UniqueConstraint('vaccination_record_id', 'reminder_type', name='unique_vaccination_reminder'),
+        Index('idx_vaccination_reminders_due_date', 'due_date'),
+        Index('idx_vaccination_reminders_user_type', 'user_id', 'reminder_type'),
     )

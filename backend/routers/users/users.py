@@ -218,7 +218,7 @@ async def update_current_user_profile(
         # If baby name is updated, update display_name in auth table
         if profile_update.baby_name:
             try:
-                supabase = get_supabase_client()
+                supabase = get_supabase_client()                
                 supabase.auth.admin.update_user_by_id(
                     str(supabase_user.id),
                     {"user_metadata": {"display_name": profile_update.baby_name}}
@@ -232,9 +232,10 @@ async def update_current_user_profile(
         return UserProfileResponse(
             id=str(profile.id),
             user_id=str(profile.user_id),
+            username=profile.username,  # Add missing username field
             email=supabase_user.email,
             baby_name=profile.baby_name,
-            baby_date_of_birth=profile.baby_date_of_birth,
+            baby_date_of_birth=profile.baby_date_of_birth.date() if profile.baby_date_of_birth else None,  # Convert datetime to date
             parent_name=profile.parent_name,
             parent_mobile=profile.parent_mobile,
             parent_email=profile.parent_email,
