@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../../components/ui/display/card"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "../../components/ui/forms/form"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/forms/select-black"
 import { FileUpload } from "../../components/ui/forms/file-upload"
 import { ChevronLeft, CheckCircle } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
@@ -260,16 +261,26 @@ export default function CreateWorkerPage() {
                     )}
                   />
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">                    <FormField
                       control={form.control}
                       name="specialization"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Specialization</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Enter specialization" {...field} />
-                          </FormControl>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select specialization" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {specializations.map((spec) => (
+                                <SelectItem key={spec} value={spec}>
+                                  {spec}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}

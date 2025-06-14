@@ -41,8 +41,7 @@ export default function CreateDoctorPage() {
   const [doctorData, setDoctorData] = useState<any>(null)
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
+    resolver: zodResolver(formSchema),    defaultValues: {
       username: "",
       email: "",
       password: "",
@@ -261,8 +260,7 @@ export default function CreateDoctorPage() {
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmitForm)} className="space-y-8">
-              {/* Personal Information */}
+            <form onSubmit={form.handleSubmit(onSubmitForm)} className="space-y-8">              {/* Personal Information */}
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Personal Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

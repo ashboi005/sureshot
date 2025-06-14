@@ -86,7 +86,8 @@ export interface UploadResponse {
 
 // Helper function to get auth headers
 const getAuthHeaders = () => {
-  const token = localStorage.getItem('token');
+  // Try both possible token storage keys
+  const token = localStorage.getItem('accessToken') || localStorage.getItem('token');
   return {
     'Content-Type': 'application/json',
     ...(token && { Authorization: `Bearer ${token}` })
@@ -137,11 +138,10 @@ export const api = {
   },
 
   async uploadWorkerDocument(workerId: string, file: File): Promise<UploadResponse> {
-    try {
-      const formData = new FormData();
+    try {      const formData = new FormData();
       formData.append('file', file);
       
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('accessToken') || localStorage.getItem('token');
       const response = await fetch(`${API_BASE_URL}/admin/upload/worker-document?worker_id=${workerId}`, {
         method: 'POST',
         headers: {
@@ -203,11 +203,10 @@ export const api = {
   },
 
   async uploadDoctorDocument(doctorId: string, file: File): Promise<UploadResponse> {
-    try {
-      const formData = new FormData();
+    try {      const formData = new FormData();
       formData.append('file', file);
       
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('accessToken') || localStorage.getItem('token');
       const response = await fetch(`${API_BASE_URL}/admin/upload/doctor-document?doctor_id=${doctorId}`, {
         method: 'POST',
         headers: {

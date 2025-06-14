@@ -24,17 +24,17 @@ export function CitySelect({ value, onValueChange, placeholder = "Select a city"
     <Select value={value} onValueChange={onValueChange} disabled={disabled}>
       <SelectTrigger className="w-full">
         <SelectValue placeholder={placeholder} />
-      </SelectTrigger>
-      <SelectContent>          {cities.map((city) => (
-            <SelectItem 
-              key={city.value} 
-              value={city.value}
-              disabled={'disabled' in city ? city.disabled : false}
-              className={'disabled' in city && city.disabled ? "text-gray-500 text-center" : ""}
-            >
-              {city.label}
-            </SelectItem>
-          ))}
+      </SelectTrigger>      <SelectContent>
+        {cities.map((city, index) => (
+          <SelectItem 
+            key={city.value === "separator" ? "separator" : `city-${city.value.replace(/\s+/g, '-').toLowerCase()}-${index}`}
+            value={city.value}
+            disabled={'disabled' in city ? city.disabled : false}
+            className={'disabled' in city && city.disabled ? "text-gray-500 text-center" : ""}
+          >
+            {city.label}
+          </SelectItem>
+        ))}
       </SelectContent>
     </Select>
   )
