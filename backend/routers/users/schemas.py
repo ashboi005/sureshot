@@ -3,6 +3,7 @@ from typing import Optional
 from datetime import datetime, date
 
 class CreateUserProfileRequest(BaseModel):
+    username: str
     baby_name: str
     baby_date_of_birth: date
     parent_name: str
@@ -37,6 +38,7 @@ class UserProfileResponse(BaseModel):
     id: str
     user_id: str
     email: str
+    username: str
     baby_name: Optional[str] = None
     baby_date_of_birth: Optional[date] = None
     parent_name: Optional[str] = None
