@@ -14,7 +14,6 @@ const rolePaths: Record<Role, string[]> = {
 const publicPaths = [
   '/auth',
   '/login',
-  '/',
   '/register',
   '/api/auth' // If you have auth API routes
 ];
