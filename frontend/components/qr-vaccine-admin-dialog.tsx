@@ -59,18 +59,14 @@ const QRVaccineAdminDialog: React.FC<QRVaccineAdminProps> = ({
     if (!userId || !vaccineTemplateId) {
       toast.error("Missing patient or vaccine information");
       return;
-    }
-      // Only check the doctor ID from the Jotai atom
-    
-    // If we don't have a doctor ID from the atom, check if user exists
-    if (!doctorId && (!user || !user.user_id)) {
+    }      // Only check the doctor ID from the Jotai atom
+    if (!doctorId) {
       toast.error("Doctor information not available");
       return;
-    }    
+    }
     setLoading(true);
     setCurrentStep(1); // Move to loading animation
-    
-    try {
+      try {
       // Artificial delay for better UX
       await new Promise(resolve => setTimeout(resolve, 1500));
       
@@ -78,7 +74,7 @@ const QRVaccineAdminDialog: React.FC<QRVaccineAdminProps> = ({
       await administeredVaccineByQR(
         userId,
         vaccineTemplateId,
-        doctorId || user!.user_id, // Use doctor_id from Jotai atom or fallback to user_id
+        doctorId, // Only use doctor_id from Jotai atom
         doseNumber ? parseInt(doseNumber, 10) : 1, // Use provided dose or default to 1
         notes || ""
       );
@@ -138,7 +134,7 @@ const QRVaccineAdminDialog: React.FC<QRVaccineAdminProps> = ({
               <Label htmlFor="doctor-id">Doctor ID</Label>
               <Input 
                 id="doctor-id" 
-                value={doctorId || user?.user_id || 'Not available'} 
+                value={doctorId || 'Not available'} 
                 readOnly 
                 className="bg-muted"
               />
