@@ -13,6 +13,7 @@ import {
   type DragEndEvent,
   type UniqueIdentifier,
 } from "@dnd-kit/core"
+import QRCode from "qrcode"
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers"
 import {
   arrayMove,
@@ -22,13 +23,9 @@ import {
 } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import {
-  IconChevronDown,
-  IconChevronLeft,
-  IconChevronRight,
   IconGripVertical,
   IconLayoutColumns,
   IconLoader,
-  IconQrcode,
 } from "@tabler/icons-react"
 import {
   ColumnDef,
@@ -39,14 +36,7 @@ import {
 } from "@tanstack/react-table"
 import { toast } from "sonner"
 import { z } from "zod"
-import QRCode from "qrcode"
-import { Download } from "lucide-react"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -63,15 +53,25 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 export const schema = z.object({
   id: z.string(),
-  vaccination_name: z.string(),
-  start_date: z.string(),
-  end_date: z.string(),
-  vaccination_city: z.string(),
-  assigned_workers: z.array(z.unknown()).default([]),
+  vaccine_name: z.string(),
+  dose_number: z.number(),
+  due_date: z.string(),
+  disease_prevented: z.string(),
+  notes: z.string().nullable(),
+  is_administered: z.boolean().optional(),
+  is_overdue: z.boolean().optional(),
 })
+
+type VaccinationSchedule = z.infer<typeof schema>
 
 function DragHandle({ id }: { id: string }) {
   const { attributes, listeners } = useSortable({ id })
@@ -90,43 +90,48 @@ function DragHandle({ id }: { id: string }) {
   )
 }
 
-export function VaccinationDrivesTable({ userId }: { userId: string }) {
-  const [data, setData] = React.useState<z.infer<typeof schema>[]>([])
-  const [loading, setLoading] = React.useState(true)
+function DraggableRow({ row }: { row: Row<VaccinationSchedule> }) {
+  const { transform, transition, setNodeRef, isDragging } = useSortable({
+    id: row.original.id,
+  })
+
+  return (
+    <TableRow
+      ref={setNodeRef}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition: transition,
+      }}
+      className={isDragging ? "bg-accent opacity-80" : ""}
+    >
+      {row.getVisibleCells().map((cell) => (
+        <TableCell key={cell.id}>
+          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+        </TableCell>
+      ))}
+    </TableRow>
+  )
+}
+
+interface VaccinationScheduleTableProps {
+  userId: string
+}
+
+export function VaccinationScheduleTable({ userId }: VaccinationScheduleTableProps) {
   const [qrDialogOpen, setQrDialogOpen] = React.useState(false)
   const [qrImageUrl, setQrImageUrl] = React.useState("")
-  const [currentDrive, setCurrentDrive] = React.useState<{
-    driveId: string
-    driveName: string
+  const [currentVaccine, setCurrentVaccine] = React.useState<{
+    id: string
+    vaccine_name: string
+    dose_number: number
   } | null>(null)
+  const [data, setData] = React.useState<VaccinationSchedule[]>([])
+  const [loading, setLoading] = React.useState(true)
 
-  const fetchVaccinationDrives = async () => {
-    try {
-      const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/users/active-drives`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-          },
-        }
-      )
-      setData(response.data.drives)
-    } catch (error) {
-      console.error("Error fetching drives:", error)
-      toast.error("Failed to load vaccination drives")
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  React.useEffect(() => {
-    fetchVaccinationDrives()
-  }, [])
-
-  const generateQRCode = async (driveId: string, driveName: string) => {
-    setCurrentDrive({ driveId, driveName })
+  const generateQRCode = async (id: string, vaccine_name: string, dose_number: number) => {
+    setCurrentVaccine({ id, vaccine_name, dose_number })
     
-    const url = `/worker/${userId}/${driveId}`
+    const url = `${window.location.origin}/doctor/${userId}/${id}?dose=${dose_number}`
     
     try {
       const qrDataUrl = await QRCode.toDataURL(url, {
@@ -141,77 +146,68 @@ export function VaccinationDrivesTable({ userId }: { userId: string }) {
       setQrImageUrl(qrDataUrl)
       setQrDialogOpen(true)
     } catch (err) {
+      console.error("QR generation error:", err)
       toast.error("Failed to generate QR code")
     }
   }
 
   const downloadQRCode = () => {
-    if (!qrImageUrl || !currentDrive) return
+    if (!qrImageUrl || !currentVaccine) return
     
     const link = document.createElement('a')
     link.href = qrImageUrl
-    link.download = `QR_${currentDrive.driveName}_${currentDrive.driveId}.png`
+    link.download = `QR_${currentVaccine.vaccine_name.replace(/\s+/g, '_')}_Dose_${currentVaccine.dose_number}.png`
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
   }
 
-  const columns: ColumnDef<z.infer<typeof schema>>[] = [
+  const columns: ColumnDef<VaccinationSchedule>[] = [
     {
       id: "drag",
       header: () => null,
       cell: ({ row }) => <DragHandle id={row.original.id} />,
     },
     {
-      accessorKey: "vaccination_name",
-      header: "Drive Name",
-      cell: ({ row }) => <div className="font-medium">{row.original.vaccination_name}</div>,
+      accessorKey: "vaccine_name",
+      header: "Vaccine Name",
+      cell: ({ row }) => <div className="font-medium">{row.original.vaccine_name}</div>,
     },
     {
-      accessorKey: "status",
+      accessorKey: "dose_number",
+      header: "Dose Number",
+      cell: ({ row }) => <div>Dose {row.original.dose_number}</div>,
+    },
+    {
+      accessorKey: "due_date",
+      header: "Due Date",
+      cell: ({ row }) => (
+        <div>{new Date(row.original.due_date).toLocaleDateString()}</div>
+      ),
+    },
+    {
+      accessorKey: "disease_prevented",
+      header: "Disease Prevented",
+      cell: ({ row }) => <div>{row.original.disease_prevented}</div>,
+    },
+    {
+      accessorKey: "notes",
+      header: "Notes",
+      cell: ({ row }) => (
+        <div className="max-w-xs truncate">{row.original.notes || "N/A"}</div>
+      ),
+    },
+    {
+      id: "status",
       header: "Status",
-      cell: ({ row }) => {
-        const now = new Date()
-        const start = new Date(row.original.start_date)
-        const end = new Date(row.original.end_date)
-        
-        let status = "Upcoming"
-        let variant: "default" | "secondary" | "destructive" = "secondary"
-        
-        if (now > start && now < end) {
-          status = "Ongoing"
-          variant = "default"
-        } else if (now > end) {
-          status = "Completed"
-          variant = "destructive"
-        }
-        
-        return <Badge variant={variant}>{status}</Badge>
-      },
-    },
-    {
-      accessorKey: "vaccination_city",
-      header: "City",
-      cell: ({ row }) => <div>{row.original.vaccination_city}</div>,
-    },
-    {
-      accessorKey: "start_date",
-      header: "Start Date",
       cell: ({ row }) => (
-        <div>{new Date(row.original.start_date).toLocaleDateString()}</div>
+        <Badge
+          variant={row.original.is_administered ? "default" : "secondary"}
+          className="whitespace-nowrap"
+        >
+          {row.original.is_administered ? "Vaccinated" : "Pending"}
+        </Badge>
       ),
-    },
-    {
-      accessorKey: "end_date",
-      header: "End Date",
-      cell: ({ row }) => (
-        <div>{new Date(row.original.end_date).toLocaleDateString()}</div>
-      ),
-    },
-    {
-      accessorKey: "assigned_workers",
-      header: "Workers",
-      cell: ({ row }) => <div>{row.original.assigned_workers.length}</div>,
     },
     {
       id: "actions",
@@ -220,13 +216,40 @@ export function VaccinationDrivesTable({ userId }: { userId: string }) {
         <Button 
           variant="outline" 
           size="sm"
-          onClick={() => generateQRCode(row.original.id, row.original.vaccination_name)}
+          onClick={() => generateQRCode(
+            row.original.id,
+            row.original.vaccine_name,
+            row.original.dose_number
+          )}
         >
           Generate QR
         </Button>
       ),
-    },
+    }
   ]
+
+  const fetchVaccinationSchedule = async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/vaccination/schedule/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+        }
+      )
+      setData(response.data)
+    } catch (error) {
+      console.error("Error fetching vaccination schedule:", error)
+      toast.error("Failed to load vaccination schedule")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  React.useEffect(() => {
+    fetchVaccinationSchedule()
+  }, [userId])
 
   const sensors = useSensors(
     useSensor(MouseSensor, {}),
@@ -256,34 +279,11 @@ export function VaccinationDrivesTable({ userId }: { userId: string }) {
     }
   }
 
-  function DraggableRow({ row }: { row: Row<z.infer<typeof schema>> }) {
-    const { transform, transition, setNodeRef, isDragging } = useSortable({
-      id: row.original.id,
-    })
-
-    return (
-      <TableRow
-        ref={setNodeRef}
-        style={{
-          transform: CSS.Transform.toString(transform),
-          transition: transition,
-        }}
-        className={isDragging ? "opacity-80" : ""}
-      >
-        {row.getVisibleCells().map((cell) => (
-          <TableCell key={cell.id}>
-            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-          </TableCell>
-        ))}
-      </TableRow>
-    )
-  }
-
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
         <IconLoader className="mr-2 h-4 w-4 animate-spin" />
-        Loading vaccination drives...
+        Loading vaccination schedule...
       </div>
     )
   }
@@ -291,7 +291,7 @@ export function VaccinationDrivesTable({ userId }: { userId: string }) {
   return (
     <div className="w-full">
       <div className="flex items-center justify-between p-4">
-        <h2 className="text-lg font-semibold">Vaccination Drives</h2>
+        <h2 className="text-lg font-semibold">Vaccination Schedule</h2>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm">
@@ -308,7 +308,7 @@ export function VaccinationDrivesTable({ userId }: { userId: string }) {
                   checked={column.getIsVisible()}
                   onCheckedChange={(value) => column.toggleVisibility(!!value)}
                 >
-                  {column.id}
+                  {column.columnDef.header as string}
                 </DropdownMenuCheckboxItem>
               ))}
           </DropdownMenuContent>
@@ -353,7 +353,7 @@ export function VaccinationDrivesTable({ userId }: { userId: string }) {
                     colSpan={columns.length}
                     className="h-24 text-center"
                   >
-                    No vaccination drives found.
+                    No vaccination schedule found.
                   </TableCell>
                 </TableRow>
               )}
@@ -363,28 +363,25 @@ export function VaccinationDrivesTable({ userId }: { userId: string }) {
       </div>
 
       <Dialog open={qrDialogOpen} onOpenChange={setQrDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle>Vaccination Drive QR Code</DialogTitle>
+            <DialogTitle>Vaccination QR Code</DialogTitle>
           </DialogHeader>
-          <div className="flex flex-col items-center space-y-4">
+          <div className="flex flex-col items-center gap-4 py-4">
+            {currentVaccine && (
+              <div className="text-center">
+                <h3 className="font-medium">{currentVaccine.vaccine_name}</h3>
+                <p className="text-sm text-muted-foreground">Dose {currentVaccine.dose_number}</p>
+              </div>
+            )}
             {qrImageUrl && (
               <img 
                 src={qrImageUrl} 
-                alt="Vaccination Drive QR Code" 
-                className="w-full max-w-xs border border-gray-200 rounded-lg"
+                alt="Vaccination QR Code" 
+                className="w-48 h-48 border rounded-lg"
               />
             )}
-            <div className="text-sm text-gray-500 text-center">
-              <p>Scan this code to register for the vaccination drive</p>
-              {currentDrive && (
-                <p className="font-mono text-xs mt-2 p-2 bg-gray-100 rounded">
-                  {currentDrive.driveName}
-                </p>
-              )}
-            </div>
-            <Button onClick={downloadQRCode} className="gap-2">
-              <Download className="h-4 w-4" />
+            <Button onClick={downloadQRCode}>
               Download QR Code
             </Button>
           </div>

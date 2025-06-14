@@ -12,14 +12,16 @@ import { VaccinationDrive } from "@/types/VaccinationDrives"
 import { VaccineRecord } from "@/types/VaccineRecord"
 import { VaccinationHistoryTable } from "@/components/vaccination-records-table"
 import useUser from "@/hooks/useUser"
+import { VaccinationScheduleTable } from "@/components/vaccination-schedule"
+import { Loader2 } from "lucide-react"
 
 export default function DashboardPage() {
   const [vaccinationHistory, setVaccinationHistory] = useState<VaccineRecord[]>([])
   const [vaccinationDrives, setVaccinationDrives] = useState<VaccinationDrive[]>([])
- const { user,  error } = useUser();
+  const { user, error } = useUser();
   const [loading, setLoading] = useState(true)
   useEffect(() => {
-   
+
 
     const fetchVaccinationHistory = async (userId: string) => {
       try {
@@ -47,70 +49,84 @@ export default function DashboardPage() {
             },
           }
         )
-          console.log("Vaccination Drives:", response.data)
+        console.log("Vaccination Drives:", response)
         setVaccinationDrives(response.data.drives)
       } catch (error) {
         console.error("Error fetching vaccination drives:", error)
       }
     }
 
-    const fetchData = async () => {
-      try {
-        setLoading(true)
-        const userData =user
-        if (userData?.user_id) {
-          await Promise.all([
-            fetchVaccinationHistory(userData.user_id),
-            fetchVaccinationDrives()
-          ])
-        }
-      } catch (error) {
-        console.error("Error in data fetching sequence:", error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchData()
+    fetchVaccinationDrives()
+    fetchVaccinationHistory(user?.user_id || "")
   }, [])
-
+  console.log("User Id", user)
   return (
     <div className="min-h-screen bg-gray-50/50">
       <Navbar user={user} />
-      
+
       <div className="flex flex-1">
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-              <SectionCards 
-                vaccinesTaken={vaccinationHistory.length} 
-                vaccinationDrivesUpcoming={vaccinationDrives.length} 
-                vaccinationsLeft={vaccinationDrives.length} 
+              <SectionCards
+                vaccinesTaken={vaccinationHistory.length}
+                vaccinationDrivesUpcoming={vaccinationDrives.length}
+                vaccinationsLeft={vaccinationDrives.length}
               />
-              
+
               <Tabs defaultValue="vaccination-history" className="bg-white rounded-lg shadow-sm p-6 border mx-4 lg:mx-6">
-                <TabsList className="grid w-full grid-cols-2">
+                <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger value="vaccination-history">Vaccination History</TabsTrigger>
                   <TabsTrigger value="vaccination-drives">Vaccination Drives</TabsTrigger>
+                  <TabsTrigger value="vaccination-schedule">Vaccination Schedule</TabsTrigger>
                 </TabsList>
-                
+
                 <TabsContent value="vaccination-history" className="mt-6">
                   {user ? (
-                    <VaccinationHistoryTable 
-                      userId={user.user_id} 
+                    <VaccinationHistoryTable
+                      userId={user.user_id}
                     />
                   ) : (
                     <div className="py-8 text-center text-muted-foreground">
-                      <div className="animate-pulse">Loading user data...</div>
+                      <div className="animate-pulse flex flex-col items-center gap-2">
+                        <Loader2 className="h-6 w-6 animate-spin" />
+                        Loading vaccination history...
+                      </div>
                     </div>
                   )}
                 </TabsContent>
-                
+
+                <TabsContent value="vaccination-schedule" className="mt-6">
+                  {user ? (
+                    <VaccinationScheduleTable
+                      userId={user.user_id}
+                    />
+                  ) : (
+                    <div className="py-8 text-center text-muted-foreground">
+                      <div className="animate-pulse flex flex-col items-center gap-2">
+                        <Loader2 className="h-6 w-6 animate-spin" />
+                        Loading vaccination schedule...
+                      </div>
+                    </div>
+                  )}
+                </TabsContent>
+
                 <TabsContent value="vaccination-drives" className="mt-6">
-                  {user && <VaccinationDrivesTable userId={user.user_id} />}
+                  {user ? (
+                    <VaccinationDrivesTable
+                      userId={user.user_id}
+                    />
+                  ) : (
+                    <div className="py-8 text-center text-muted-foreground">
+                      <div className="animate-pulse flex flex-col items-center gap-2">
+                        <Loader2 className="h-6 w-6 animate-spin" />
+                        Loading vaccination drives...
+                      </div>
+                    </div>
+                  )}
                 </TabsContent>
               </Tabs>
-              
+
               <div className="px-4 lg:px-6">
                 <ChartAreaInteractive />
               </div>

@@ -5,6 +5,7 @@ import useUser from '@/hooks/useUser'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
+import { Loader2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
@@ -17,11 +18,11 @@ import { z } from 'zod'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { toast } from 'sonner'
 import { Edit3, Mail, MapPin, Calendar, Phone, User as UserIcon, Droplets, Home, Baby } from 'lucide-react'
+import axios from 'axios'
 
 const profileUpdateSchema = z.object({
   username: z.string().min(3, 'Username must be at least 3 characters').max(20, 'Username must be less than 20 characters'),
-  baby_name: z.string().min(2, 'Baby name must be at least 2 characters').max(50, 'Baby name must be less than 50 characters'),
-  baby_date_of_birth: z.string().min(1, 'Date of birth is required'),
+ 
   parent_name: z.string().min(2, 'Parent name must be at least 2 characters').max(100, 'Parent name must be less than 100 characters'),
   parent_mobile: z.string().min(10, 'Mobile number must be at least 10 digits').max(15, 'Mobile number must be less than 15 digits'),
   gender: z.enum(['Male', 'Female', 'Other'], { required_error: 'Please select a gender' }),
@@ -38,17 +39,16 @@ type ProfileUpdateForm = z.infer<typeof profileUpdateSchema>
 const ProfilePage = () => {
   const { user, loading, error } = useUser()
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  console.log("User Data:", user)
   const form = useForm<ProfileUpdateForm>({
     resolver: zodResolver(profileUpdateSchema),
     defaultValues: {
       username: user?.username || '',
-      baby_name: user?.baby_name || '',
-      baby_date_of_birth: user?.baby_date_of_birth || '',
       parent_name: user?.parent_name || '',
       parent_mobile: user?.parent_mobile || '',
-      gender: user?.gender as 'Male' | 'Female' | 'Other' || 'Male',
-      blood_group: user?.blood_group as 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-' || 'O+',
+      gender: (user?.gender as 'Male' | 'Female' | 'Other') || 'Male',
+      blood_group: (user?.blood_group as 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-') || 'O+',
       address: user?.address || '',
       city: user?.city || '',
       state: user?.state || '',
@@ -60,31 +60,38 @@ const ProfilePage = () => {
   React.useEffect(() => {
     if (user) {
       form.reset({
-        username: user.username,
-        baby_name: user.baby_name,
-        baby_date_of_birth: user.baby_date_of_birth,
-        parent_name: user.parent_name,
-        parent_mobile: user.parent_mobile,
-        gender: user.gender as 'Male' | 'Female' | 'Other',
-        blood_group: user.blood_group as 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-',
-        address: user.address,
-        city: user.city,
-        state: user.state,
-        pin_code: user.pin_code,
-        avatar_url: user.avatar_url
+        username: user.username || '',
+        parent_name: user.parent_name || '',
+        parent_mobile: user.parent_mobile || '',
+        gender: user.gender as 'Male' | 'Female' | 'Other' || 'Male',
+        blood_group: user.blood_group as 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-' || 'O+',
+        address: user.address || '',
+        city: user.city || '',
+        state: user.state || '',
+        pin_code: user.pin_code || '',
+        avatar_url: user.avatar_url || ''
       })
     }
   }, [user, form])
 
   const onSubmit = async (data: ProfileUpdateForm) => {
+    console.log("Hello")
     try {
-      toast.success('Profile updated successfully!')
-      setIsEditDialogOpen(false)
-    } catch (error) {
-      toast.error('Failed to update profile. Please try again.')
+      setIsSubmitting(true);
+      await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, data, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+        }
+      });
+      toast.success('Profile updated successfully!');
+      setIsEditDialogOpen(false);
+      // Optionally refresh user data here
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to update profile. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   }
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
@@ -246,82 +253,12 @@ const ProfilePage = () => {
                             )}
                           />
                         </div>
-                        <FormField
-                          control={form.control}
-                          name="avatar_url"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Profile Picture URL</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Enter image URL" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+
                       </div>
 
                       <Separator />
 
-                      {/* Baby Information Section */}
-                      <div className="space-y-4">
-                        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                          <Baby className="w-5 h-5" />
-                          Baby Information
-                        </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <FormField
-                            control={form.control}
-                            name="baby_name"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Baby Name</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="Enter baby's name" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="baby_date_of_birth"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Date of Birth</FormLabel>
-                                <FormControl>
-                                  <Input type="date" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="gender"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Gender</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                  <FormControl>
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="Select gender" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    <SelectItem value="Male">Male</SelectItem>
-                                    <SelectItem value="Female">Female</SelectItem>
-                                    <SelectItem value="Other">Other</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                      </div>
 
-                      <Separator />
 
                       {/* Address Information Section */}
                       <div className="space-y-4">
@@ -386,12 +323,17 @@ const ProfilePage = () => {
                       </div>
 
                       <div className="flex gap-3 pt-4">
-                        <Button type="submit" className="flex-1">
-                          Save Changes
+                        <Button type="submit" className="flex-1" disabled={isSubmitting}>
+                          {isSubmitting ? (
+                            <div className="flex items-center gap-2">
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              Saving...
+                            </div>
+                          ) : (
+                            "Save Changes"
+                          )}
                         </Button>
-                        <Button type="button" variant="outline" className="flex-1" onClick={() => setIsEditDialogOpen(false)}>
-                          Cancel
-                        </Button>
+                   
                       </div>
                     </form>
                   </Form>
@@ -401,10 +343,8 @@ const ProfilePage = () => {
           </CardContent>
         </Card>
 
-        {/* Information Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Personal Information */}
-          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+        <div className="">
+          <Card className="shadow-lg border-0 mb-6 bg-white/80 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-xl">
                 <UserIcon className="w-5 h-5 text-blue-600" />
@@ -438,35 +378,7 @@ const ProfilePage = () => {
             </CardContent>
           </Card>
 
-          {/* Baby Information */}
-          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-xl">
-                <Calendar className="w-5 h-5 text-purple-600" />
-                Baby Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <div className="p-3 bg-purple-50 rounded-lg">
-                  <p className="text-sm text-purple-600">Baby Name</p>
-                  <p className="font-medium text-lg">{user.baby_name}</p>
-                </div>
-                <div className="p-3 bg-purple-50 rounded-lg">
-                  <p className="text-sm text-purple-600">Date of Birth</p>
-                  <p className="font-medium">{new Date(user.baby_date_of_birth).toLocaleDateString('en-US', { 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                  })}</p>
-                </div>
-                <div className="p-3 bg-purple-50 rounded-lg">
-                  <p className="text-sm text-purple-600">Gender</p>
-                  <Badge variant="outline" className="mt-1 border-purple-200 text-purple-700">{user.gender}</Badge>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+
 
           {/* Address Information */}
           <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm md:col-span-2">
