@@ -1,0 +1,3 @@
+// This file will create a scan-success.mp3 sound file - 
+// Since we can't create a binary file directly, we need to add a placeholder
+// You should replace this file with an actual MP3 file for the scan success sound

@@ -2,6 +2,15 @@ from pydantic import BaseModel, EmailStr
 from typing import Optional
 from datetime import date, datetime
 
+class DoctorIdResponse(BaseModel):
+    user_id: str
+    doctor_id: str
+    specialization: Optional[str] = None
+    hospital_affiliation: Optional[str] = None
+    
+    class Config:
+        from_attributes = True
+
 class PatientResponse(BaseModel):
     user_id: str
     baby_name: str

@@ -123,8 +123,8 @@ const router=  useRouter()
                     Password must be at least 8 characters with uppercase, lowercase, and a number
                   </p>
                 </div>
-                <Button type="submit" className="w-full">
-                  Sign Up
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                 { isLoading?"Signing Up...": "Sign Up" }
                 </Button>
               </div>
               <div className="text-center text-sm">
