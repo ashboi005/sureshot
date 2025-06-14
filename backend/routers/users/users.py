@@ -143,10 +143,10 @@ async def create_user_profile(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="User profile already exists"
             )
-        
-        # Create new profile
+          # Create new profile
         new_profile = UserProfile(
             user_id=supabase_user.id,
+            username=profile_data.username,
             baby_name=profile_data.baby_name,
             baby_date_of_birth=profile_data.baby_date_of_birth,
             parent_name=profile_data.parent_name,
@@ -174,8 +174,7 @@ async def create_user_profile(
         
         await db.commit()
         await db.refresh(new_profile)
-        
-        # Update display_name in auth table to baby's name
+          # Update display_name in auth table to baby's name
         try:
             supabase = get_supabase_client()
             supabase.auth.admin.update_user_by_id(
@@ -189,6 +188,7 @@ async def create_user_profile(
             id=str(new_profile.id),
             user_id=str(new_profile.user_id),
             email=supabase_user.email,
+            username=new_profile.username,
             baby_name=new_profile.baby_name,
             baby_date_of_birth=new_profile.baby_date_of_birth,
             parent_name=new_profile.parent_name,
