@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import NullPool
 from models import Base, UserProfile
 from supabase import create_client, Client
 
@@ -12,7 +13,7 @@ AWS_REGION = os.getenv("AWS_REGION", "ap-south-1")
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY")
 SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
-DATABASE_URL = os.getenv("DATABASE_URL")
+DATABASE_URL = os.getenv("DATABASE_URL")  # Direct connection only
 SUPABASE_STORAGE_BUCKET = os.getenv("SUPABASE_STORAGE_BUCKET")
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 JWT_ALGORITHM = "HS256"
@@ -49,29 +50,31 @@ def get_supabase_storage():
     return client.storage
 
 if DATABASE_URL:
+    # Using Session pooler (port 6543) - better support for prepared statements
     sync_engine = create_engine(DATABASE_URL.replace("postgresql+asyncpg://", "postgresql://"))
     
+    print(f"Using Session pooler connection: {DATABASE_URL.split('@')[0]}@...")
     asyncpg_url = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://")
     
-    if "?" in asyncpg_url:
-        base_url = asyncpg_url.split("?")[0]
-    else:
-        base_url = asyncpg_url
-    
-    asyncpg_url = f"{base_url}?prepared_statement_cache_size=0"
-    
+    # Session pooler connection - allows prepared statements
     async_engine = create_async_engine(
         asyncpg_url,
         echo=False,
-        pool_pre_ping=False, 
-        pool_size=5,
-        max_overflow=0
+        poolclass=NullPool,  # Let Supabase handle pooling
+        connect_args={
+            "command_timeout": 60,
+            "server_settings": {
+                "application_name": "vaxtrack_session_pool"
+            }
+        }
     )
 
     AsyncSessionLocal = sessionmaker(
         bind=async_engine,
         class_=AsyncSession,
-        expire_on_commit=False
+        expire_on_commit=False,
+        autoflush=False,     # Manual flush control
+        autocommit=False
     )
 else:
     sync_engine = None
@@ -82,7 +85,13 @@ async def get_db():
     if AsyncSessionLocal is None:
         raise Exception("Database not configured")
     async with AsyncSessionLocal() as session:
-        yield session
+        try:
+            yield session
+        except Exception:
+            await session.rollback()
+            raise
+        finally:
+            await session.close()
 
 async def init_db():
     if async_engine is None:
