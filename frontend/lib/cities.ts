@@ -1,7 +1,14 @@
 import { City } from 'country-state-city';
 
+// Cache for cities to prevent repeated API calls
+let cachedIndianCities: { value: string; label: string }[] | null = null;
+
 // Get all Indian cities
 export const getIndianCities = () => {
+  if (cachedIndianCities) {
+    return cachedIndianCities;
+  }
+
   const cities = City.getCitiesOfCountry('IN');
   if (!cities) return [];
   
@@ -18,7 +25,8 @@ export const getIndianCities = () => {
     }
   });
   
-  return Array.from(cityMap.values()).sort((a, b) => a.label.localeCompare(b.label));
+  cachedIndianCities = Array.from(cityMap.values()).sort((a, b) => a.label.localeCompare(b.label));
+  return cachedIndianCities;
 };
 
 // Popular Indian cities for faster selection
@@ -45,7 +53,14 @@ export const popularIndianCities = [
   { value: "Vadodara", label: "Vadodara" },
 ];
 
+// Cache for combined cities
+let cachedCombinedCities: any[] | null = null;
+
 export const getCombinedCities = () => {
+  if (cachedCombinedCities) {
+    return cachedCombinedCities;
+  }
+
   const allCities = getIndianCities();
   const popularCityNames = new Set(popularIndianCities.map(city => city.value.toLowerCase().trim()));
   
@@ -64,11 +79,11 @@ export const getCombinedCities = () => {
     }, [])
     .sort((a: { label: string }, b: { label: string }) => a.label.localeCompare(b.label));
   
-  const finalCities = [
+  cachedCombinedCities = [
     ...popularIndianCities,
     { value: "separator", label: "─────── Other Cities ───────", disabled: true },
     ...otherCities
   ];
   
-  return finalCities;
+  return cachedCombinedCities;
 };

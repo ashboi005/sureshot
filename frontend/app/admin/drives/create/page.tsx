@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -93,12 +93,10 @@ export default function CreateVaccinationDrivePage() {
           message: "End date must be after start date",
         })
         return
-      }
-
-      const driveData = {
+      }      const driveData = {
         ...values,
-        start_date: values.start_date.toISOString().split('T')[0],
-        end_date: values.end_date.toISOString().split('T')[0],
+        start_date: values.start_date.toISOString(),
+        end_date: values.end_date.toISOString(),
       }
 
       await api.createVaccinationDrive(driveData)
@@ -120,8 +118,7 @@ export default function CreateVaccinationDrivePage() {
       setSubmitting(false)
     }
   }
-
-  const handleWorkerToggle = (workerId: string) => {
+  const handleWorkerToggle = useCallback((workerId: string) => {
     const currentWorkers = form.getValues("assigned_worker_ids")
     const isSelected = currentWorkers.includes(workerId)
     
@@ -132,7 +129,7 @@ export default function CreateVaccinationDrivePage() {
       const updatedWorkers = [...currentWorkers, workerId]
       form.setValue("assigned_worker_ids", updatedWorkers)
     }
-  }
+  }, [form])
 
   const selectedWorkerIds = form.watch("assigned_worker_ids")
 
@@ -296,8 +293,7 @@ export default function CreateVaccinationDrivePage() {
                     <span className="ml-2">Loading workers...</span>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto border rounded-lg p-4">
-                    {workers.map((worker) => (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto border rounded-lg p-4">                    {workers.map((worker) => (
                       <div
                         key={worker.id}
                         className={cn(
@@ -306,13 +302,15 @@ export default function CreateVaccinationDrivePage() {
                             ? "bg-primary/10 border-primary"
                             : "bg-background hover:bg-muted"
                         )}
-                        onClick={() => handleWorkerToggle(worker.id)}
                       >
                         <Checkbox
                           checked={selectedWorkerIds.includes(worker.id)}
-                          onChange={() => {}} // Handled by the parent div click
+                          onCheckedChange={() => handleWorkerToggle(worker.id)}
                         />
-                        <div className="flex-1 min-w-0">
+                        <div 
+                          className="flex-1 min-w-0 cursor-pointer"
+                          onClick={() => handleWorkerToggle(worker.id)}
+                        >
                           <p className="text-sm font-medium truncate">
                             {worker.first_name} {worker.last_name}
                           </p>

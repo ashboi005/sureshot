@@ -65,6 +65,7 @@ export interface CreateDoctorData {
   specialization: string;
   hospital_affiliation: string;
   experience_years: number;
+  medical_council_registration_url: string;
 }
 
 export interface CreateVaccinationDriveData {
@@ -182,9 +183,9 @@ export const api = {
       return { doctors: [], total: 0 };
     }
   },
-
   async createDoctor(data: CreateDoctorData): Promise<DoctorResponse> {
     try {
+      console.log('Creating doctor with data:', data);
       const response = await fetch(`${API_BASE_URL}/admin/doctors`, {
         method: 'POST',
         headers: getAuthHeaders(),
@@ -192,6 +193,8 @@ export const api = {
       });
       
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Doctor creation failed:', response.status, errorText);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       

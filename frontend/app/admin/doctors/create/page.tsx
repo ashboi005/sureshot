@@ -55,10 +55,12 @@ export default function CreateDoctorPage() {
 
   const onSubmitForm = async (values: FormValues) => {
     try {
-      setIsSubmitting(true)
-      
-      // Create doctor first
-      const doctor = await api.createDoctor(values)
+      setIsSubmitting(true)      // Create doctor first
+      const doctorData = {
+        ...values,
+        medical_council_registration_url: ""
+      }
+      const doctor = await api.createDoctor(doctorData)
       setCreatedDoctorId(doctor.id)
       setDoctorData(doctor)
       
