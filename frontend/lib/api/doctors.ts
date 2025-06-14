@@ -120,17 +120,18 @@ export async function administeredVaccineByQR(
       vaccine_template_id: vaccineTemplateId,
       dose_number: doseNumber,
       doctor_id: doctorId,
-      administered_date: new Date().toISOString().split('T')[0], // Today's date
+      administered_date: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
       notes: notes || ""
     };
 
     await axios.post(
-      "https://lusgpt0l4e.execute-api.ap-south-1.amazonaws.com/Prod/vaccination/administer",
+      `${API_URL}/vaccination/administer`,
       administerData,
       {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          Accept: "application/json"
         }
       }
     );

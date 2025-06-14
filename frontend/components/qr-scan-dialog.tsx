@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Html5QrcodeScanner, Html5QrcodeScanType } from 'html5-qrcode';
+import { Html5QrcodeScanner, Html5QrcodeScanType, Html5Qrcode } from 'html5-qrcode';
 import useUser from "@/hooks/useUser";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface QRScanDialogProps {
   open: boolean;
@@ -19,6 +20,9 @@ export function QRScanDialog({ open, onOpenChange, onScanComplete }: QRScanDialo
   const [scanning, setScanning] = useState(false);
   const [loading, setLoading] = useState(false);
   const { user } = useUser();
+  const [cameras, setCameras] = useState<{id: string, label: string}[]>([]);
+  const [selectedCamera, setSelectedCamera] = useState<string>("");
+  const [cameraLoading, setCameraLoading] = useState(false);
   
   // QR scanner references
   const qrScannerRef = useRef<Html5QrcodeScanner | null>(null);
@@ -29,12 +33,43 @@ export function QRScanDialog({ open, onOpenChange, onScanComplete }: QRScanDialo
     vaccine_template_id?: string;
     dose_number?: string;
   } | null>(null);
+  
+  // Load available cameras
+  const loadCameras = async () => {
+    setCameraLoading(true);
+    try {
+      const devices = await Html5Qrcode.getCameras();
+      if (devices && devices.length) {
+        const cameraList = devices.map(device => ({
+          id: device.id,
+          label: device.label || `Camera ${device.id}`
+        }));
+        setCameras(cameraList);
+        // Select the first camera by default
+        if (cameraList.length > 0 && !selectedCamera) {
+          setSelectedCamera(cameraList[0].id);
+        }
+      } else {
+        toast.error("No cameras found on your device");
+      }
+    } catch (error) {
+      console.error("Error getting cameras:", error);
+      toast.error("Failed to access camera. Please check permissions.");
+    } finally {
+      setCameraLoading(false);
+    }
+  };
+
   // Start QR scanner
   const startQRScanner = () => {
+    if (!selectedCamera) {
+      toast.error("Please select a camera first");
+      return;
+    }
     setScanning(true);
     // Reset QR data when starting a new scan
     setQrData(null);
-    console.log("Starting QR scanner");
+    console.log("Starting QR scanner with camera:", selectedCamera);
   };
   
   // Stop and clean up scanner
@@ -132,10 +167,9 @@ export function QRScanDialog({ open, onOpenChange, onScanComplete }: QRScanDialo
     } finally {
       setLoading(false);
     }
-  };
-  // Setup QR scanner when scanning is enabled
+  };  // Setup QR scanner when scanning is enabled
   useEffect(() => {
-    if (scanning && open) {
+    if (scanning && open && selectedCamera) {
       const onScanSuccess = (decodedText: string) => {
         console.log("Scan success:", decodedText);
         // Play a success sound
@@ -163,8 +197,7 @@ export function QRScanDialog({ open, onOpenChange, onScanComplete }: QRScanDialo
       };
 
       setTimeout(() => {
-        const container = document.getElementById("qr-scanner-container");
-        if (container && !qrScannerRef.current) {
+        const container = document.getElementById("qr-scanner-container");        if (container && !qrScannerRef.current) {
           // Configure scanner with improved settings
           qrScannerRef.current = new Html5QrcodeScanner(
             "qr-scanner-container",
@@ -172,13 +205,13 @@ export function QRScanDialog({ open, onOpenChange, onScanComplete }: QRScanDialo
               fps: 15, // Increased FPS for better responsiveness
               qrbox: { width: 300, height: 300 }, // Larger scanning area
               supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
-              rememberLastUsedCamera: true,
+              rememberLastUsedCamera: false, // Don't remember last used camera, we're explicitly selecting
               showTorchButtonIfSupported: true, // Add flashlight support if available
               aspectRatio: 1.0, // Square aspect ratio
-              formatsToSupport: [ // Explicitly support common QR code formats
-                0, // QR_CODE
-                12 // AZTEC (fallback support)
-              ]
+              formatsToSupport: [0, 12], // Explicitly support QR_CODE and AZTEC formats
+              videoConstraints: {
+                deviceId: selectedCamera
+              }
             },
             false
           );
@@ -187,7 +220,7 @@ export function QRScanDialog({ open, onOpenChange, onScanComplete }: QRScanDialo
           
           // Add a listener for when the camera becomes ready
           document.addEventListener('camera-ready', () => {
-            console.log("Camera initialized successfully");
+            console.log("Camera initialized successfully with device ID:", selectedCamera);
           });
         }
       }, 500);
@@ -198,8 +231,7 @@ export function QRScanDialog({ open, onOpenChange, onScanComplete }: QRScanDialo
         stopScanner();
       }
     };
-  }, [scanning, open]);
-
+  }, [scanning, open, selectedCamera]);
   // Clean up scanner on unmount
   useEffect(() => {
     return () => {
@@ -207,12 +239,27 @@ export function QRScanDialog({ open, onOpenChange, onScanComplete }: QRScanDialo
     };
   }, []);
 
-  return (
-    <Dialog 
+  // Load cameras when dialog opens
+  useEffect(() => {
+    if (open && cameras.length === 0) {
+      loadCameras();
+    }
+  }, [open, cameras.length]);
+
+  // Load cameras on component mount
+  useEffect(() => {
+    loadCameras();
+  }, []);
+
+  return (    <Dialog 
       open={open} 
       onOpenChange={(isOpen: boolean) => {
-        if (!isOpen && scanning) {
-          stopScanner();
+        if (!isOpen) {
+          if (scanning) {
+            stopScanner();
+          }
+          // Reset state when dialog is closed
+          setQrData(null);
         }
         onOpenChange(isOpen);
       }}
@@ -284,8 +331,7 @@ export function QRScanDialog({ open, onOpenChange, onScanComplete }: QRScanDialo
                   Cancel Scan
                 </Button>
               </div>
-            ) : (
-              <div className="flex flex-col items-center gap-6 py-6">
+            ) : (              <div className="flex flex-col items-center gap-6 py-6">
                 <div className="rounded-full bg-gradient-to-r from-blue-50 to-indigo-50 p-6">
                   <svg 
                     className="w-16 h-16 text-blue-500" 
@@ -302,38 +348,95 @@ export function QRScanDialog({ open, onOpenChange, onScanComplete }: QRScanDialo
                     />
                   </svg>
                 </div>
-                  <div className="text-center space-y-2 max-w-xs">
-                  <h3 className="text-lg font-semibold">Scan Patient QR Code</h3>                  <p className="text-sm text-gray-500">
+                <div className="text-center space-y-2 max-w-xs">
+                  <h3 className="text-lg font-semibold">Scan Patient QR Code</h3>
+                  <p className="text-sm text-gray-500">
                     Scan a QR code in format: doctor/&#123;user-id&#125;/&#123;vaccine-id&#125;?dose=&#123;dose_number&#125;
                   </p>
                 </div>
                 
-                <Button 
-                  onClick={startQRScanner}
-                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 py-6"
-                >
-                  <svg 
-                    className="w-5 h-5 mr-2" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24" 
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      strokeWidth={2} 
-                      d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" 
-                    />
-                    <path 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      strokeWidth={2} 
-                      d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" 
-                    />
-                  </svg>
-                  Start Camera
-                </Button>
+                <div className="w-full space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="camera-select">Select Camera</Label>
+                    {cameraLoading ? (
+                      <div className="h-10 flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
+                      </div>
+                    ) : cameras.length > 0 ? (
+                      <Select
+                        value={selectedCamera}
+                        onValueChange={setSelectedCamera}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select camera" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {cameras.map(camera => (
+                            <SelectItem key={camera.id} value={camera.id}>
+                              {camera.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <div className="text-sm text-gray-500 italic">No cameras detected</div>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    {cameras.length === 0 && !cameraLoading && (
+                      <Button 
+                        onClick={loadCameras}
+                        variant="outline"
+                        className="w-full"
+                      >
+                        <svg 
+                          className="w-5 h-5 mr-2" 
+                          fill="none" 
+                          stroke="currentColor" 
+                          viewBox="0 0 24 24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round" 
+                            strokeWidth={2} 
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" 
+                          />
+                        </svg>
+                        Detect Cameras
+                      </Button>
+                    )}
+                    
+                    <Button 
+                      onClick={startQRScanner}
+                      disabled={!selectedCamera}
+                      className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 py-6"
+                    >
+                      <svg 
+                        className="w-5 h-5 mr-2" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24" 
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          strokeWidth={2} 
+                          d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" 
+                        />
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          strokeWidth={2} 
+                          d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" 
+                        />
+                      </svg>
+                      Start Camera
+                    </Button>
+                  </div>
+                </div>
               </div>
             )
           ) : (

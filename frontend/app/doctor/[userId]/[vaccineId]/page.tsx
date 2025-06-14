@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from "lucide-react";
 
@@ -13,16 +13,16 @@ interface PageProps {
 
 export default function DoctorQRRedirectPage({ params }: PageProps) {
   const router = useRouter();
-  const { userId, vaccineId } = params;
-    useEffect(() => {
+  // Cast params to the correct type before using React.use()
+  const resolvedParams = React.use(params as unknown as Promise<{ userId: string; vaccineId: string }>);    useEffect(() => {
     // Redirect to the doctor dashboard with QR parameters
     // This ensures the doctor's main page handles the vaccine administration
-    if (userId && vaccineId) {
+    if (resolvedParams.userId && resolvedParams.vaccineId) {
       // Check for dose parameter in the URL
       const searchParams = new URLSearchParams(window.location.search);
       const doseNumber = searchParams.get('dose');
       
-      let redirectUrl = `/doctor?user_id=${userId}&vaccine_template_id=${vaccineId}`;
+      let redirectUrl = `/doctor?user_id=${resolvedParams.userId}&vaccine_template_id=${resolvedParams.vaccineId}`;
       
       // Add dose parameter if available
       if (doseNumber) {
@@ -33,7 +33,7 @@ export default function DoctorQRRedirectPage({ params }: PageProps) {
     } else {
       router.push('/doctor');
     }
-  }, [userId, vaccineId, router]);
+  }, [resolvedParams.userId, resolvedParams.vaccineId, router]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100">
