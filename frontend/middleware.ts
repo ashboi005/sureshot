@@ -13,6 +13,7 @@ const rolePaths: Record<Role, string[]> = {
 // Public paths - now using exact matches or specific subpaths
 const publicPaths = [
   '/auth',
+  '/',
   '/login',
   '/register',
   '/api/auth' // If you have auth API routes
