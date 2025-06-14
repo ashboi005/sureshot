@@ -5,9 +5,12 @@ from fastapi.responses import HTMLResponse, Response
 from fastapi import Request, HTTPException
 import os
 import asyncio
+from datetime import datetime, date, timedelta
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.interval import IntervalTrigger
 
 from routers.auth.auth import router as auth_router
 from routers.users.users import router as users_router
@@ -15,12 +18,17 @@ from routers.admin.admin import router as admin_router
 from routers.workers.workers import router as workers_router
 from routers.vaccines.vaccines import router as vaccines_router
 from routers.doctors.doctors import router as doctors_router
+from routers.demo.demo import router as demo_router
 from config import async_engine, get_db
-from models import VaccineTemplate
+from models import VaccineTemplate, AccountType
 from vaccine_data import BABY_VACCINE_TEMPLATES
+from utils.reminder_service import send_vaccination_reminders
 
 ENVIRONMENT = os.getenv("ENVIRONMENT", "dev")
 IS_PRODUCTION = ENVIRONMENT == "prod"
+
+# Initialize APScheduler
+scheduler = AsyncIOScheduler()
 
 app = FastAPI(
     title="Vaxtrack API - Baby Vaccination Tracker",
@@ -102,6 +110,10 @@ app.include_router(admin_router)
 app.include_router(workers_router)
 app.include_router(vaccines_router)
 app.include_router(doctors_router)
+app.include_router(demo_router)
+
+# Demo functionality available at /demo/ endpoints
+# See routers/demo/demo.py for hackathon demonstration features
 
 # Add explicit CORS preflight handler
 @app.options("/{full_path:path}")
@@ -124,11 +136,34 @@ async def startup_event():
     """Initialize the application on startup"""
     print("Starting Vaxtrack API...")
     await populate_vaccine_templates()
+    
+    # Start the vaccination reminder scheduler
+    try:
+        scheduler.add_job(
+            send_vaccination_reminders,
+            IntervalTrigger(minutes=30),  # Run every 30 minutes
+            id="vaccination_reminders",
+            name="Vaccination Reminder Job",
+            max_instances=1,  # Prevent overlapping jobs
+            replace_existing=True
+        )
+        scheduler.start()
+        print("✅ Vaccination reminder scheduler started (runs every 30 minutes)")
+    except Exception as e:
+        print(f"❌ Failed to start vaccination reminder scheduler: {e}")
+    
     print("Vaxtrack API startup completed")
 
 @app.on_event("shutdown")
 async def shutdown_event():
     """Clean up on shutdown"""
+    # Shutdown scheduler
+    try:
+        scheduler.shutdown(wait=False)
+        print("✅ Vaccination reminder scheduler shutdown")
+    except Exception as e:
+        print(f"❌ Error shutting down scheduler: {e}")
+    
     await async_engine.dispose()
     print("Vaxtrack API shutdown completed")
 

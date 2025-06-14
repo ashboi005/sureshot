@@ -3,11 +3,11 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
 from config import get_db
-from models import WorkerDetails, VaccinationDrive, DriveWorkerAssignment, DriveParticipant, AccountType
+from models import WorkerDetails, VaccinationDrive, DriveWorkerAssignment, DriveParticipant, AccountType, UserProfile
 from routers.auth.auth import get_current_user
 from routers.admin.schemas import VaccinationDriveResponse, WorkerResponse, VaccinationDriveListResponse, DocumentUploadResponse
 from .schemas import DriveParticipantResponse, DriveParticipantListResponse, AdministerDriveVaccineRequest, AdministerDriveVaccineResponse
-from .helpers import upload_worker_profile_document
+from .helpers import upload_worker_profile_document, send_drive_vaccination_confirmation
 from typing import Optional
 import logging
 import uuid
@@ -309,6 +309,28 @@ async def administer_drive_vaccine(
         participant.updated_at = datetime.utcnow()
         
         await db.commit()
+        
+        # Get vaccination drive details for notification
+        drive_result = await db.execute(
+            select(VaccinationDrive).where(VaccinationDrive.id == drive_uuid)
+        )
+        vaccination_drive = drive_result.scalar_one_or_none()
+        
+        # Get worker name for notification
+        worker_profile_result = await db.execute(
+            select(UserProfile).where(UserProfile.user_id == current_worker["supabase_user"].id)
+        )
+        worker_profile = worker_profile_result.scalar_one_or_none()
+        worker_name = f"{worker_profile.first_name} {worker_profile.last_name}".strip() if worker_profile and worker_profile.first_name else "Healthcare Worker"
+        
+        # Send vaccination confirmation notifications
+        if vaccination_drive:
+            await send_drive_vaccination_confirmation(
+                db=db,
+                participant=participant,
+                vaccination_drive=vaccination_drive,
+                worker_name=worker_name
+            )
         
         return AdministerDriveVaccineResponse(
             id=str(participant.id),

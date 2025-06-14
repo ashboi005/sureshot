@@ -8,6 +8,7 @@ import uuid
 from config import get_db
 from models import VaccineTemplate, VaccinationRecord, UserProfile, DoctorPatientRelationship, DoctorDetails
 from routers.auth.auth import get_current_user
+from .helpers import send_vaccination_confirmation
 from .schemas import (
     VaccinationRecordResponse, 
     AdministerVaccineRequest,
@@ -59,7 +60,6 @@ async def administer_vaccine(
     )
     relationship_result = await db.execute(relationship_stmt)
     existing_relationship = relationship_result.scalar_one_or_none()
-    
     if not existing_relationship:
         new_relationship = DoctorPatientRelationship(
             user_id=uuid.UUID(request.user_id),
@@ -70,6 +70,22 @@ async def administer_vaccine(
     
     await db.commit()
     await db.refresh(vaccination_record)
+    
+    # Get vaccine template for notification details
+    vaccine_template_stmt = select(VaccineTemplate).where(
+        VaccineTemplate.id == vaccination_record.vaccine_template_id
+    )
+    template_result = await db.execute(vaccine_template_stmt)
+    vaccine_template = template_result.scalar_one_or_none()
+    
+    # Send vaccination confirmation notifications
+    if vaccine_template:
+        await send_vaccination_confirmation(
+            db=db,
+            user_id=str(vaccination_record.user_id),
+            vaccination_record=vaccination_record,
+            vaccine_template=vaccine_template
+        )
     
     return {"message": "Vaccine administered successfully", "record_id": str(vaccination_record.id)}
 
