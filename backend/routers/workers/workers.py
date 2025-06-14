@@ -171,8 +171,7 @@ async def get_worker_profile(
         )
         worker = worker_result.scalar_one_or_none()
         
-        if not worker:
-            raise HTTPException(
+        if not worker:            raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Worker profile not found"
             )
@@ -181,9 +180,7 @@ async def get_worker_profile(
             id=str(worker.id),
             user_id=str(worker.user_id),
             city_name=worker.city_name,
-            certificate_number=worker.certificate_number,
-            government_id=worker.government_id,
-            certificate_photo_url=worker.certificate_photo_url,
+            government_id_url=worker.government_id_url,
             specialization=worker.specialization,
             experience_years=worker.experience_years,
             is_active=worker.is_active,
@@ -215,12 +212,24 @@ async def get_drive_participants(
     try:
         drive_uuid = uuid.UUID(drive_id)
         
+        # Get worker details
+        worker_result = await db.execute(
+            select(WorkerDetails).where(WorkerDetails.user_id == current_worker["supabase_user"].id)
+        )
+        worker = worker_result.scalar_one_or_none()
+        
+        if not worker:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Worker profile not found"
+            )
+        
         # Verify worker is assigned to this drive
         assignment_check = await db.execute(
             select(DriveWorkerAssignment).where(
                 and_(
                     DriveWorkerAssignment.drive_id == drive_uuid,
-                    DriveWorkerAssignment.worker_id == current_worker["worker_details"].id
+                    DriveWorkerAssignment.worker_id == worker.id
                 )
             )
         )
@@ -304,12 +313,24 @@ async def administer_drive_vaccine(
         drive_uuid = uuid.UUID(drive_id)
         user_uuid = uuid.UUID(request.user_id)
         
+        # Get worker details
+        worker_result = await db.execute(
+            select(WorkerDetails).where(WorkerDetails.user_id == current_worker["supabase_user"].id)
+        )
+        worker = worker_result.scalar_one_or_none()
+        
+        if not worker:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Worker profile not found"
+            )
+        
         # Verify worker is assigned to this drive
         assignment_check = await db.execute(
             select(DriveWorkerAssignment).where(
                 and_(
                     DriveWorkerAssignment.drive_id == drive_uuid,
-                    DriveWorkerAssignment.worker_id == current_worker["worker_details"].id
+                    DriveWorkerAssignment.worker_id == worker.id
                 )
             )
         )
@@ -342,11 +363,10 @@ async def administer_drive_vaccine(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Participant has already been vaccinated"
             )
-        
-        # Update participant record
+          # Update participant record
         participant.is_vaccinated = True
         participant.vaccination_date = request.vaccination_date
-        participant.worker_id = current_worker["worker_details"].id
+        participant.worker_id = worker.id
         participant.notes = request.notes
         participant.updated_at = datetime.utcnow()
         
