@@ -1,5 +1,5 @@
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/display"
-import { Progress } from "./ui/feedback"
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/display/avatar"
+import { Progress } from "../ui/feedback/progress"
 
 const workers = [
   {

@@ -1,5 +1,5 @@
 import { Activity, CheckCircle, Clock, Users } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/display"
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/display/card"
 
 export function DashboardStats() {
   return (

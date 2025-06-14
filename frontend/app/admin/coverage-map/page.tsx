@@ -1,8 +1,8 @@
-import { Button } from "../components/ui/core"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/display"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/forms"
-import { CoverageMap } from "../components/coverage-map"
-import { CoverageStats } from "../components/coverage-stats"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/forms/select"
+import { CoverageMap } from "../components/maps/coverage-map"
+import { CoverageStats } from "../components/dashboard/coverage-stats"
 
 export default function CoverageMapPage() {
   return (

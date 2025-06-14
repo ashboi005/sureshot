@@ -1,7 +1,7 @@
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/display"
-import { Badge } from "./ui/core"
-import { Button } from "./ui/core"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/data"
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/display/avatar"
+import { Badge } from "../ui/core/badge"
+import { Button } from "@/components/ui/button"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/data/table"
 import { MoreHorizontal, Phone } from "lucide-react"
 
 const workers = [

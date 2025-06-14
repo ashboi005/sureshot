@@ -2,14 +2,15 @@
 
 import { useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
-import { Button } from "../../components/ui/core"
-import { Input } from "../../components/ui/core"
-import { Label } from "../../components/ui/core"
-import { Textarea } from "../../components/ui/core"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/display"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../../components/ui/forms"
-import { Calendar } from "../../components/ui/forms"
-import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/specialized"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "../../components/ui/core/textarea"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../../components/ui/forms/form"
+import { Calendar } from "../../components/ui/forms/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/overlays"
+import { CitySelect } from "../../components/city-select"
 import { CalendarIcon, ChevronLeft, Loader2, Users } from "lucide-react"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
@@ -17,8 +18,8 @@ import { useToast } from "@/hooks/use-toast"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Checkbox } from "../../components/ui/forms"
-import { Badge } from "../../components/ui/core"
+import { Checkbox } from "../../components/ui/forms/checkbox"
+import { Badge } from "../../components/ui/core/badge"
 import { api, WorkerResponse } from "@/lib/api"
 import Link from "next/link"
 
@@ -176,16 +177,18 @@ export default function CreateVaccinationDrivePage() {
                       <FormMessage />
                     </FormItem>
                   )}
-                />
-
-                <FormField
+                />                <FormField
                   control={form.control}
                   name="vaccination_city"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>City</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g. Mumbai" {...field} />
+                        <CitySelect
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          placeholder="Select city"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

@@ -1,6 +1,6 @@
-import { Badge } from "./ui/core"
-import { Button } from "./ui/core"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/data"
+import { Badge } from "../ui/core/badge"
+import { Button } from "@/components/ui/button"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/data/table"
 import { ArrowRight } from "lucide-react"
 import Link from "next/link"
 

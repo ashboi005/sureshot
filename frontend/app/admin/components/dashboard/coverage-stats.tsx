@@ -1,5 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/display"
-import { Progress } from "./ui/feedback"
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/display/card"
+import { Progress } from "../ui/feedback/progress"
 
 export function CoverageStats() {
   return (

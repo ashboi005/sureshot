@@ -4,8 +4,8 @@ import { BarChart3, Calendar, LogOut, Map, Settings, Shield, Stethoscope, Syring
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { ModeToggle } from "./mode-toggle"
-import { Button } from "./ui/core"
+import { ModeToggle } from "../theme/mode-toggle"
+import { Button } from "@/components/ui/button"
 
 export function AdminSidebar() {
   const pathname = usePathname()

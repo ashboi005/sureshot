@@ -1,10 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Button } from "../components/ui/core"
-import { Input } from "../components/ui/core"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/data"
-import { Badge } from "../components/ui/core"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Badge } from "../components/ui/core/badge"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/data/table"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,8 +12,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "../components/ui/specialized"
-import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/display"
+} from "../components/ui/specialized/dropdown-menu"
+import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/display/avatar"
 import { Filter, MoreHorizontal, Phone, Plus, Search, Stethoscope, MapPin, Calendar, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { api, DoctorResponse } from "@/lib/api"
@@ -27,13 +27,18 @@ export default function DoctorsPage() {
   const [currentPage, setCurrentPage] = useState(0)
   const [total, setTotal] = useState(0)
   const { toast } = useToast()
-
   const fetchDoctors = async () => {
     try {
       setLoading(true)
-      const activeOnly = filterStatus === "ACTIVE" ? true : filterStatus === "INACTIVE" ? false : undefined
-      const response = await api.getDoctors(currentPage * 10, 10, undefined, activeOnly)
-      setDoctors(response.doctors)
+      const response = await api.getDoctors(currentPage * 10, 10)
+      // Filter locally based on status if needed
+      let filteredDoctors = response.doctors
+      if (filterStatus === "ACTIVE") {
+        filteredDoctors = response.doctors.filter(doctor => doctor.is_active)
+      } else if (filterStatus === "INACTIVE") {
+        filteredDoctors = response.doctors.filter(doctor => !doctor.is_active)
+      }
+      setDoctors(filteredDoctors)
       setTotal(response.total)
     } catch (error) {
       console.error('Error fetching doctors:', error)

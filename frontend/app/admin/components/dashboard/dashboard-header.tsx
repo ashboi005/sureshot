@@ -1,4 +1,4 @@
-import { Button } from "./ui/core"
+import { Button } from "@/components/ui/button"
 import { Calendar } from "lucide-react"
 
 export function DashboardHeader() {
