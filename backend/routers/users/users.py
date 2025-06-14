@@ -81,6 +81,7 @@ async def get_current_user_profile(
     return UserProfileResponse(
         id=str(profile.id),
         user_id=str(profile.user_id),
+        username=profile.username,
         email=supabase_user.email,
         baby_name=profile.baby_name,
         baby_date_of_birth=profile.baby_date_of_birth,

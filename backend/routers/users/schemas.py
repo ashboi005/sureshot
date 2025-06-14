@@ -36,6 +36,7 @@ class ProfileImageUpload(BaseModel):
 class UserProfileResponse(BaseModel):
     id: str
     user_id: str
+    username: str
     email: str
     baby_name: Optional[str] = None
     baby_date_of_birth: Optional[date] = None
