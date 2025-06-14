@@ -1,0 +1,11 @@
+/* Add custom CSS for the QR scanner animation */
+.scan-line {
+  height: 2px;
+  background: linear-gradient(to right, transparent, #3b82f6, transparent);
+}
+
+@keyframes scan {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(320px); }
+  100% { transform: translateY(0); }
+}
