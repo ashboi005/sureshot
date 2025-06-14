@@ -19,7 +19,7 @@ from .schemas import (
     VaccinationDriveListResponse,
     DocumentUploadResponse
 )
-from .helpers import upload_worker_document, upload_doctor_document
+from .helpers import upload_worker_document, upload_doctor_document, create_drive_participants, notify_assigned_workers, notify_drive_participants
 from typing import Optional, List
 from datetime import datetime
 import logging
@@ -32,61 +32,6 @@ router = APIRouter(prefix="/admin", tags=["Admin"])
 
 security = HTTPBearer()
 supabase = get_supabase_client()
-
-
-async def create_drive_participants(db: AsyncSession, vaccination_drive: VaccinationDrive):
-    """
-    Auto-create drive participants for all users in the vaccination drive's city
-    """
-    try:
-        # Get all users in the same city as the vaccination drive
-        users_in_city_query = select(UserProfile).where(
-            UserProfile.city == vaccination_drive.vaccination_city
-        )
-        
-        users_result = await db.execute(users_in_city_query)
-        users_in_city = users_result.scalars().all()
-        
-        # Create participant records for each user
-        participants_created = 0
-        for user_profile in users_in_city:
-            # Check if participant already exists (in case of re-run)
-            existing_participant = await db.execute(
-                select(DriveParticipant).where(
-                    and_(
-                        DriveParticipant.vaccination_drive_id == vaccination_drive.id,
-                        DriveParticipant.user_id == user_profile.user_id
-                    )
-                )
-            )
-            
-            if existing_participant.scalar_one_or_none():
-                continue  # Skip if already exists
-            
-            # Create new participant record
-            participant = DriveParticipant(
-                vaccination_drive_id=vaccination_drive.id,
-                user_id=user_profile.user_id,
-                baby_name=user_profile.baby_name,
-                parent_name=user_profile.parent_name,
-                parent_mobile=user_profile.parent_mobile,
-                address=f"{user_profile.address}, {user_profile.city}, {user_profile.state} - {user_profile.pin_code}",
-                is_vaccinated=False
-            )
-            
-            db.add(participant)
-            participants_created += 1
-        
-        if participants_created > 0:
-            await db.commit()
-            logger.info(f"Created {participants_created} drive participants for drive {vaccination_drive.id}")
-        else:
-            logger.info(f"No new participants created for drive {vaccination_drive.id}")
-            
-    except Exception as e:
-        logger.error(f"Error creating drive participants: {str(e)}")
-        await db.rollback()
-        # Don't raise the exception - participant creation is supplementary
 
 
 async def get_admin_user(
@@ -373,13 +318,10 @@ async def create_doctor(
         
         db.add(new_user_profile)
         await db.flush()
-        
-        # Create doctor details
+          # Create doctor details
         doctor_details = DoctorDetails(
             user_id=auth_response.user.id,
-            medical_license_number=doctor_data.medical_license_number,
-            medical_council_registration=doctor_data.medical_council_registration,
-            license_photo_url=doctor_data.license_photo_url,
+            medical_council_registration_url=doctor_data.medical_council_registration_url,
             specialization=doctor_data.specialization,
             hospital_affiliation=doctor_data.hospital_affiliation,
             experience_years=doctor_data.experience_years
@@ -388,13 +330,10 @@ async def create_doctor(
         db.add(doctor_details)
         await db.commit()
         await db.refresh(doctor_details)
-        
         return DoctorResponse(
             id=str(doctor_details.id),
             user_id=str(doctor_details.user_id),
-            medical_license_number=doctor_details.medical_license_number,
-            medical_council_registration=doctor_details.medical_council_registration,
-            license_photo_url=doctor_details.license_photo_url,
+            medical_council_registration_url=doctor_details.medical_council_registration_url,
             specialization=doctor_details.specialization,
             hospital_affiliation=doctor_details.hospital_affiliation,
             experience_years=doctor_details.experience_years,
@@ -441,13 +380,10 @@ async def get_doctors(
                 select(UserProfile).where(UserProfile.user_id == doctor.user_id)
             )
             profile = profile_result.scalar_one_or_none()
-            
             doctor_responses.append(DoctorResponse(
                 id=str(doctor.id),
                 user_id=str(doctor.user_id),
-                medical_license_number=doctor.medical_license_number,
-                medical_council_registration=doctor.medical_council_registration,
-                license_photo_url=doctor.license_photo_url,
+                medical_council_registration_url=doctor.medical_council_registration_url,
                 specialization=doctor.specialization,
                 hospital_affiliation=doctor.hospital_affiliation,
                 experience_years=doctor.experience_years,
@@ -511,8 +447,7 @@ async def create_vaccination_drive(
                     if not worker:
                         logger.warning(f"Worker {worker_id} not found, skipping assignment")
                         continue
-                    
-                    # Create assignment
+                      # Create assignment
                     assignment = DriveWorkerAssignment(
                         drive_id=vaccination_drive.id,
                         worker_id=worker_id
@@ -522,13 +457,22 @@ async def create_vaccination_drive(
                     
                 except ValueError:
                     logger.warning(f"Invalid worker ID format: {worker_id_str}")
-                    continue        
+                    continue
+        
         await db.commit()
         await db.refresh(vaccination_drive)
         
         # Auto-create drive participants for all users in the same city
         await create_drive_participants(db, vaccination_drive)
-          # Prepare worker responses
+        
+        # Send notifications to assigned workers
+        if assigned_workers:
+            await notify_assigned_workers(db, vaccination_drive, assigned_workers)
+        
+        # Send notifications to participants
+        await notify_drive_participants(db, vaccination_drive)
+        
+        # Prepare worker responses
         worker_responses = []
         for worker in assigned_workers:
             profile_result = await db.execute(
@@ -655,4 +599,78 @@ async def get_vaccination_drives(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve vaccination drives"
+        )
+
+@router.post("/generate-all-vaccination-schedules")
+async def generate_vaccination_schedules_for_all_users(
+    current_admin = Depends(get_admin_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Admin endpoint to generate vaccination schedules for all users who don't have them
+    This is useful for existing users who were created before the auto-generation feature
+    """
+    try:
+        from routers.vaccines.vaccines import generate_vaccination_schedule_for_user
+        
+        # Get all user profiles with baby birth dates
+        profiles_query = select(UserProfile).where(
+            UserProfile.baby_date_of_birth.isnot(None)
+        )
+        result = await db.execute(profiles_query)
+        profiles = result.scalars().all()
+        
+        total_users = len(profiles)
+        processed_users = 0
+        total_records_created = 0
+        errors = []
+        
+        logger.info(f"Starting vaccination schedule generation for {total_users} users")
+        
+        for profile in profiles:
+            try:
+                created_count = await generate_vaccination_schedule_for_user(
+                    db, 
+                    profile.user_id, 
+                    profile.baby_date_of_birth
+                )
+                
+                if created_count > 0:
+                    total_records_created += created_count
+                    logger.info(f"Created {created_count} records for user {profile.baby_name}")
+                
+                processed_users += 1
+                
+            except Exception as e:
+                error_msg = f"Failed to create schedule for user {profile.baby_name} ({profile.user_id}): {str(e)}"
+                logger.error(error_msg)
+                errors.append(error_msg)
+                continue
+        
+        await db.commit()
+        
+        result_message = f"Processed {processed_users}/{total_users} users. Created {total_records_created} vaccination records."
+        
+        if errors:
+            result_message += f" {len(errors)} errors occurred."
+        
+        logger.info(f"Vaccination schedule generation completed: {result_message}")
+        
+        return {
+            "message": "Vaccination schedule generation completed",
+            "summary": {
+                "total_users_found": total_users,
+                "users_processed": processed_users,
+                "total_records_created": total_records_created,
+                "errors_count": len(errors)
+            },
+            "errors": errors if errors else None
+        }
+        
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"Error in bulk vaccination schedule generation: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate vaccination schedules: {str(e)}"
         )

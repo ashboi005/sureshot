@@ -40,6 +40,7 @@ class CreateDoctorRequest(BaseModel):
     specialization: Optional[str] = None
     hospital_affiliation: Optional[str] = None
     experience_years: Optional[int] = None
+    medical_council_registration_url: Optional[str] = None
 
 class DoctorResponse(BaseModel):
     id: str

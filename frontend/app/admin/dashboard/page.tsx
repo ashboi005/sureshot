@@ -1,10 +1,10 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/display"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/navigation"
-import { DashboardHeader } from "../components/dashboard-header"
-import { DashboardStats } from "../components/dashboard-stats"
-import { RecentDrives } from "../components/recent-drives"
-import { VaccinationChart } from "../components/vaccination-chart"
-import { WorkerPerformance } from "../components/worker-performance"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/navigation/tabs"
+import { DashboardHeader } from "../components/dashboard/dashboard-header"
+import { DashboardStats } from "../components/dashboard/dashboard-stats"
+import { RecentDrives } from "../components/dashboard/recent-drives"
+import { VaccinationChart } from "../components/charts/vaccination-chart"
+import { WorkerPerformance } from "../components/charts/worker-performance"
 
 export default function DashboardPage() {
   return (

@@ -1,13 +1,13 @@
-import { Button } from "../../components/ui/core"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/display"
-import { Progress } from "../../components/ui/feedback"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/navigation"
-import { Badge } from "../../components/ui/core"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Progress } from "../../components/ui/feedback/progress"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/navigation/tabs"
+import { Badge } from "../../components/ui/core/badge"
 import { ChevronLeft, Download, Edit, MapPin, Users } from "lucide-react"
 import Link from "next/link"
-import { DriveWorkersList } from "../../components/drive-workers-list"
-import { DriveProgressChart } from "../../components/drive-progress-chart"
-import { DriveMap } from "../../components/drive-map"
+import { DriveWorkersList } from "../../components/dashboard/drive-workers-list"
+import { DriveProgressChart } from "../../components/charts/drive-progress-chart"
+import { DriveMap } from "../../components/maps/drive-map"
 
 // This would come from your API in a real app
 const driveData = {

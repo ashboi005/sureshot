@@ -126,8 +126,7 @@ export function VaccinationDrivesTable({ userId }: { userId: string }) {
   const generateQRCode = async (driveId: string, driveName: string) => {
     setCurrentDrive({ driveId, driveName })
     
-    const baseUrl = window.location.origin
-    const url = `${baseUrl}/doctor/${userId}/${driveId}`
+    const url = `/worker/${userId}/${driveId}`
     
     try {
       const qrDataUrl = await QRCode.toDataURL(url, {
