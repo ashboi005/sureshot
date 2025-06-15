@@ -1,9 +1,9 @@
 "use client"
 
 import React, { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { Loader2 } from "lucide-react";
-import { useParams, useSearchParams } from 'next/navigation';
+import {  useSearchParams } from 'next/navigation';
 
 export default function DoctorQRRedirectPage() {
   const router = useRouter();
