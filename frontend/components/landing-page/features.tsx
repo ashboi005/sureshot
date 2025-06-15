@@ -67,7 +67,7 @@ export default function Features() {
   ];
 
   return (
-    <section id="features" className="py-20 bg-gray-50">
+    <section id="features" className="py-20 bg-[#1c1c1c]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           className="text-center mb-16"
@@ -76,8 +76,8 @@ export default function Features() {
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
         >
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Comprehensive Vaccination Management</h2>
-          <p className="max-w-2xl mx-auto text-xl text-gray-600">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 letter-spacing-2">COMPREHENSIVE VACCINATION MANAGEMENT</h2>
+          <p className="max-w-2xl mx-auto text-xl text-gray-300">
             VaxTrack offers powerful features designed to streamline vaccination programs and improve healthcare outcomes.
           </p>
         </motion.div>
@@ -86,17 +86,32 @@ export default function Features() {
           {features.map((feature, index) => (
             <motion.div
               key={feature.id}
-              className="bg-white rounded-lg shadow-md p-6 border border-gray-200"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
               viewport={{ once: true }}
-            >
-              <div className="bg-emerald-600 rounded-full w-12 h-12 flex items-center justify-center mb-4">
-                {feature.icon}
+              className="relative"
+            >                  
+            <div className="w-full rounded-[20px] bg-[#141414] p-1 overflow-hidden border border-transparent shadow-[0_7px_20px_0_rgba(0,0,0,0.2)] transition-all duration-300 hover:scale-102 hover:border-[#8ed500]/50 group">
+                {/* Top section with the green border on hover */}
+               
+                 
+                  <div className="absolute right-2 top-1/2  transform -translate-y-1/2">
+                    <div className="rounded-full w-10 h-10 flex items-center justify-center+ group-hover:text-[#8ed500]">
+                      {feature.icon}
+                    </div>
+                  </div>
+              
+                
+                {/* Bottom section with content */}
+                <div className="p-5 m-3">
+                  <h3 className="text-white text-lg font-bold mb-3 tracking-wide group-hover:text-[#8ed500] transition-colors">{feature.title}</h3>
+                  
+                  <div className="text-sm text-gray-300">
+                    <p>{feature.description}</p>
+                  </div>
+                </div>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">{feature.title}</h3>
-              <p className="text-gray-600">{feature.description}</p>
             </motion.div>
           ))}
         </div>
