@@ -73,6 +73,26 @@ export const workerApi = {
   },
 
   /**
+   * Get details of a specific vaccination drive by ID
+   */
+  getVaccinationDriveById: async (driveId: string) => {
+    try {
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/workers/drives/${driveId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching drive details for ID ${driveId}:`, error);
+      throw error;
+    }
+  },
+
+  /**
    * Get worker profile details
    */
   getWorkerProfile: async () => {
