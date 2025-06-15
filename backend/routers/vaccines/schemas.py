@@ -28,6 +28,7 @@ class VaccinationRecordResponse(BaseModel):
 
 class VaccinationScheduleResponse(BaseModel):
     id: str
+    vaccine_template_id: str
     vaccine_name: str
     dose_number: int
     due_date: date

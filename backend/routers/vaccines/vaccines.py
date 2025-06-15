@@ -28,6 +28,14 @@ async def administer_vaccine(
 ):
     """Administer a vaccine to a baby"""
     
+    logger.info(f"Administer vaccine request received:")
+    logger.info(f"  - user_id: '{request.user_id}'")
+    logger.info(f"  - vaccine_template_id: '{request.vaccine_template_id}'")
+    logger.info(f"  - dose_number: {request.dose_number}")
+    logger.info(f"  - doctor_id: '{request.doctor_id}'")
+    logger.info(f"  - administered_date: {request.administered_date}")
+    logger.info(f"  - notes: '{request.notes}'")
+    
     # Verify the vaccination record exists
     stmt = select(VaccinationRecord).where(
         VaccinationRecord.user_id == uuid.UUID(request.user_id),
@@ -38,9 +46,18 @@ async def administer_vaccine(
     vaccination_record = result.scalar_one_or_none()
     
     if not vaccination_record:
+        # Debug: Check what vaccination records exist for this user
+        debug_stmt = select(VaccinationRecord).where(VaccinationRecord.user_id == uuid.UUID(request.user_id))
+        debug_result = await db.execute(debug_stmt)
+        all_user_records = debug_result.scalars().all()
+        
+        logger.error(f"Vaccination record not found. User has {len(all_user_records)} vaccination records:")
+        for record in all_user_records:
+            logger.error(f"  - vaccine_template_id: {record.vaccine_template_id}, dose_number: {record.dose_number}, due_date: {record.due_date}")
+        
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Vaccination record not found"
+            detail=f"Vaccination record not found for user_id: {request.user_id}, vaccine_template_id: {request.vaccine_template_id}, dose_number: {request.dose_number}"
         )
     
     if vaccination_record.is_administered:
@@ -48,9 +65,18 @@ async def administer_vaccine(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Vaccine already administered"
         )
+      # Update vaccination record
+    logger.info(f"Doctor ID received: '{request.doctor_id}' (type: {type(request.doctor_id)})")
+    try:
+        doctor_uuid = uuid.UUID(request.doctor_id)
+        vaccination_record.doctor_id = doctor_uuid
+    except ValueError as e:
+        logger.error(f"Failed to parse doctor_id '{request.doctor_id}' as UUID: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid doctor_id format: {request.doctor_id}"
+        )
     
-    # Update vaccination record
-    vaccination_record.doctor_id = uuid.UUID(request.doctor_id)
     vaccination_record.administered_date = request.administered_date
     vaccination_record.is_administered = True
     vaccination_record.notes = request.notes
@@ -103,8 +129,7 @@ async def get_vaccination_schedule(
         VaccineTemplate, VaccinationRecord.vaccine_template_id == VaccineTemplate.id
     ).where(
         VaccinationRecord.user_id == uuid.UUID(user_id)
-    ).order_by(VaccinationRecord.due_date, VaccinationRecord.dose_number)
-    
+    ).order_by(VaccinationRecord.due_date, VaccinationRecord.dose_number)    
     result = await db.execute(stmt)
     records = result.all()
     
@@ -112,6 +137,7 @@ async def get_vaccination_schedule(
     for record, template in records:
         schedule.append(VaccinationScheduleResponse(
             id=str(record.id),
+            vaccine_template_id=str(record.vaccine_template_id),
             vaccine_name=template.vaccine_name,
             dose_number=record.dose_number,
             due_date=record.due_date.date() if isinstance(record.due_date, datetime) else record.due_date,
