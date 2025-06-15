@@ -141,13 +141,13 @@ async def send_drive_vaccination_confirmation(
         
         # Send Email Notification
         if user.email:
-            email_subject = f"Vaccination Drive Completed - {baby_name} - VaxTrack"
+            email_subject = f"Vaccination Drive Completed - {baby_name} - SureShot"
             
             email_html = f"""
             <html>
                 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
                     <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-                        <h2 style="color: #28a745;">VaxTrack - Vaccination Drive Completed ✓</h2>
+                        <h2 style="color: #28a745;">SureShot - Vaccination Drive Completed ✓</h2>
                         
                         <p>Dear {parent_name},</p>
                         
@@ -176,12 +176,12 @@ async def send_drive_vaccination_confirmation(
                             <p style="margin: 0;">Thank you for participating in our community vaccination drive. Your commitment to keeping {baby_name} protected helps keep our entire community healthy.</p>
                         </div>
                         
-                        <p>This vaccination has been recorded in {baby_name}'s vaccination history. You can view the complete vaccination record anytime through your VaxTrack account.</p>
+                        <p>This vaccination has been recorded in {baby_name}'s vaccination history. You can view the complete vaccination record anytime through your SureShot account.</p>
                         
                         <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
                         
                         <p style="font-size: 12px; color: #666;">
-                            This is an automated message from VaxTrack. Please do not reply to this email.
+                            This is an automated message from SureShot. Please do not reply to this email.
                             <br>For questions, please contact your healthcare provider or the vaccination drive organizers.
                         </p>
                     </div>
@@ -201,7 +201,7 @@ async def send_drive_vaccination_confirmation(
                 f"Great news {parent_name}! {baby_name} has successfully received "
                 f"{vaccination_name} vaccination on {vaccination_date} during the community "
                 f"vaccination drive in {drive_location}. Administered by {worker_name}. "
-                f"Monitor for mild side effects and keep them comfortable. Thank you for participating! - VaxTrack"
+                f"Monitor for mild side effects and keep them comfortable. Thank you for participating! - SureShot"
             )
             
             sms_sent = twilio_service.send_sms(participant.parent_mobile, sms_message)

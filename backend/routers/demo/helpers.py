@@ -253,7 +253,7 @@ async def send_demo_reminder_email(
         <html>
             <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
                 <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-                    <h2 style="color: {urgency_color};">🎭 VaxTrack - Vaccination Reminder</h2>
+                    <h2 style="color: {urgency_color};">🎭 SureShot - Vaccination Reminder</h2>
                     
                     <p>Dear Parent,</p>
                     
@@ -266,7 +266,7 @@ async def send_demo_reminder_email(
                     </div>
                     
                     <div style="background-color: #e7f3ff; padding: 15px; border-radius: 5px; margin: 20px 0;">
-                        <h4 style="margin: 0 0 10px 0; color: #0066cc;">VaxTrack Features:</h4>
+                        <h4 style="margin: 0 0 10px 0; color: #0066cc;">SureShot Features:</h4>
                         <ul style="margin: 0; padding-left: 20px;">
                             <li>Automated vaccination reminders (30, 15, 7, 1 days before)</li>
                             <li>Email and SMS notifications</li>
@@ -281,7 +281,7 @@ async def send_demo_reminder_email(
                     <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
                     
                     <p style="font-size: 12px; color: #666;">
-                        <br>Developed by Team VaxTrack for automated vaccination management.
+                        <br>Developed by Team SureShot for automated vaccination management.
                     </p>
                 </div>
             </body>
@@ -313,9 +313,9 @@ async def send_demo_reminder_sms(
         template = DEMO_REMINDER_TEMPLATES[reminder_key]
         
         message = (
-            f"🎭 VaxTrack DEMO: {template['sms_prefix']} {baby_name} needs {vaccine_name} vaccination "
+            f"🎭 SureShot DEMO: {template['sms_prefix']} {baby_name} needs {vaccine_name} vaccination "
             f"in {days_remaining} day{'s' if days_remaining != 1 else ''} ({due_date}). "
-            f"This is a hackathon demo showing our automated reminder system! -VaxTrack"
+            f"This is a hackathon demo showing our automated reminder system! -SureShot"
         )
         
         success = twilio_service.send_sms(DEMO_PHONE, message)

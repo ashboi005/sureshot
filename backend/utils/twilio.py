@@ -78,7 +78,7 @@ class TwilioSMSService:
         message = (
             f"Hi {parent_name}, this is a reminder that {baby_name} is due for "
             f"{vaccination_name} vaccination on {due_date}. Please schedule an appointment "
-            f"with your healthcare provider. - VaxTrack"
+            f"with your healthcare provider. - SureShot"
         )
         
         return self.send_sms(to_number, message)
@@ -107,7 +107,7 @@ class TwilioSMSService:
         message = (
             f"Hi {parent_name}, {baby_name} has successfully received "
             f"{vaccination_name} vaccination on {vaccination_date}. "
-            f"Thank you for keeping your child's vaccinations up to date! - VaxTrack"
+            f"Thank you for keeping your child's vaccinations up to date! - SureShot"
         )
         
         return self.send_sms(to_number, message)
@@ -138,7 +138,7 @@ class TwilioSMSService:
         message = (
             f"Hi {parent_name}, there's a vaccination drive '{drive_name}' "
             f"scheduled for {drive_date} in {drive_location}. "
-            f"This could be beneficial for {baby_name}. - VaxTrack"
+            f"This could be beneficial for {baby_name}. - SureShot"
         )
         
         return self.send_sms(to_number, message)

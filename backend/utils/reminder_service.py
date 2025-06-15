@@ -293,7 +293,7 @@ async def send_reminder_email(
         <html>
             <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
                 <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-                    <h2 style="color: {urgency_color};">VaxTrack - Vaccination Reminder</h2>
+                    <h2 style="color: {urgency_color};">SureShot - Vaccination Reminder</h2>
                     
                     <p>Dear {parent_name},</p>
                     
@@ -315,7 +315,7 @@ async def send_reminder_email(
                     <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
                     
                     <p style="font-size: 12px; color: #666;">
-                        This is an automated reminder from VaxTrack. Please do not reply to this email.
+                        This is an automated reminder from SureShot. Please do not reply to this email.
                         <br>For questions, please contact your healthcare provider.
                     </p>
                 </div>
@@ -346,7 +346,7 @@ async def send_reminder_sms(
         message = (
             f"{template['sms_prefix']} {baby_name} needs {vaccine_name} vaccination "
             f"in {days_remaining} day{'s' if days_remaining != 1 else ''} ({due_date}). "
-            f"Please schedule appointment. -VaxTrack"
+            f"Please schedule appointment. -SureShot"
         )
         
         return twilio_service.send_sms(phone, message)
