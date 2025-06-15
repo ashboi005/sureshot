@@ -28,10 +28,6 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
-        <div className="fixed bottom-6 right-6 z-50">
-          <PwaInstallButtonWrapper />
-        </div>
-        <link rel="manifest" href="/manifest.json" />
         <Toaster/>
       </body>
     </html>

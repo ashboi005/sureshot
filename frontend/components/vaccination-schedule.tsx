@@ -13,7 +13,6 @@ import {
   type DragEndEvent,
   type UniqueIdentifier,
 } from "@dnd-kit/core"
-
 import QRCode from "qrcode"
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers"
 import {
@@ -30,7 +29,7 @@ import {
   IconQrcode,
   IconDownload,
 } from "@tabler/icons-react"
-import { Printer} from "lucide-react"
+import { Printer } from "lucide-react"
 import {
   ColumnDef,
   flexRender,
@@ -141,33 +140,7 @@ export function VaccinationScheduleTable({ userId }: VaccinationScheduleTablePro
   const [data, setData] = React.useState<VaccinationSchedule[]>([])
   const [loading, setLoading] = React.useState(true)
   const [pdfGenerating, setPdfGenerating] = React.useState(false)
-  // Create CSV rows
-  const rows = data.map(item => [
-    `"${item.vaccine_name}"`,
-    item.dose_number,
-    `"${new Date(item.due_date).toLocaleDateString()}"`,
-    `"${item.disease_prevented}"`,
-    `"${item.notes || "N/A"}"`,
-    item.is_administered ? "Vaccinated" : "Pending"
-  ])
 
-  // Combine headers and rows
-  const csvContent = [
-    headers.join(","),
-    ...rows.map(row => row.join(","))
-  ].join("\n")
-
-  // Create download link
-  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement("a")
-  link.setAttribute("href", url)
-  link.setAttribute("download", `vaccination_schedule_${new Date().toISOString().split('T')[0]}.csv`)
-  link.style.visibility = "hidden"
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-}
   const generateQRCode = async (id: string, vaccine_name: string, dose_number: number) => {
     setCurrentVaccine({ id, vaccine_name, dose_number })
     
@@ -505,7 +478,6 @@ export function VaccinationScheduleTable({ userId }: VaccinationScheduleTablePro
   }
 
   return (
-
     <motion.div 
       variants={containerVariants}
       initial="hidden"
