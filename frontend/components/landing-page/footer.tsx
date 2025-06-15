@@ -36,7 +36,7 @@ export default function Footer() {
           <div className="px-6 py-8">
             <div className="text-center mb-8">
               <Link href="/" className="inline-block">
-                <span className="text-2xl font-bold text-[#8ed500] tracking-wider">VAXTRACK</span>
+                <span className="text-2xl font-bold text-[#8ed500] tracking-wider">SureShot</span>
               </Link>
               <p className="text-gray-400 mt-4 max-w-2xl mx-auto">
                 Empowering healthcare providers with modern vaccination management solutions.
@@ -136,7 +136,7 @@ export default function Footer() {
                 </div>
                 
                 <div className="text-gray-400 text-sm">
-                  © {new Date().getFullYear()} VaxTrack. All rights reserved.
+                  © {new Date().getFullYear()} SureShot. All rights reserved.
                 </div>
               </div>
             </div>
