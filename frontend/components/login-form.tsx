@@ -76,7 +76,6 @@ export function LoginForm({
     setIsLoading(true)
     try {
       const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, data)
-      console.log('Login response:', response.data)
       if (response.data?.access_token) {
         const accessToken = response.data.access_token;
         const userRole = response.data.user.account_type;

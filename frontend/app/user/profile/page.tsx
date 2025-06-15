@@ -17,20 +17,24 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { toast } from 'sonner'
-import { Edit3, Mail, MapPin, Calendar, Phone, User as UserIcon, Droplets, Home, Baby } from 'lucide-react'
+import { Edit3, Mail, MapPin, Calendar, Phone, User as UserIcon, Droplets, Home, Baby, Heart } from 'lucide-react'
 import axios from 'axios'
 
 const profileUpdateSchema = z.object({
-  username: z.string().min(3, 'Username must be at least 3 characters').max(20, 'Username must be less than 20 characters'),
- 
+  // Parent Information
   parent_name: z.string().min(2, 'Parent name must be at least 2 characters').max(100, 'Parent name must be less than 100 characters'),
   parent_mobile: z.string().min(10, 'Mobile number must be at least 10 digits').max(15, 'Mobile number must be less than 15 digits'),
-  gender: z.enum(['Male', 'Female', 'Other'], { required_error: 'Please select a gender' }),
-  blood_group: z.enum(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'], { required_error: 'Please select a blood group' }),
+  parent_email: z.string().email('Please enter a valid email address'),
   address: z.string().min(10, 'Address must be at least 10 characters').max(200, 'Address must be less than 200 characters'),
   city: z.string().min(2, 'City must be at least 2 characters').max(50, 'City must be less than 50 characters'),
   state: z.string().min(2, 'State must be at least 2 characters').max(50, 'State must be less than 50 characters'),
   pin_code: z.string().min(5, 'PIN code must be at least 5 digits').max(10, 'PIN code must be less than 10 digits'),
+  
+  // Baby Information
+  baby_name: z.string().min(2, 'Baby name must be at least 2 characters').max(50, 'Baby name must be less than 50 characters'),
+  baby_date_of_birth: z.string().min(1, 'Please select baby\'s date of birth'),
+  gender: z.enum(['Male', 'Female', 'Other'], { required_error: 'Please select gender' }),
+  blood_group: z.enum(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'], { required_error: 'Please select a blood group' }),
   avatar_url: z.string().url('Please enter a valid URL').optional().or(z.literal(''))
 })
 
@@ -40,44 +44,54 @@ const ProfilePage = () => {
   const { user, loading, error } = useUser()
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false);
-  console.log("User Data:", user)
+
   const form = useForm<ProfileUpdateForm>({
     resolver: zodResolver(profileUpdateSchema),
     defaultValues: {
-      username: user?.username || '',
       parent_name: user?.parent_name || '',
       parent_mobile: user?.parent_mobile || '',
-      gender: (user?.gender as 'Male' | 'Female' | 'Other') || 'Male',
-      blood_group: (user?.blood_group as 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-') || 'O+',
+      parent_email: user?.parent_email || user?.email || '',
       address: user?.address || '',
       city: user?.city || '',
       state: user?.state || '',
       pin_code: user?.pin_code || '',
-      avatar_url: user?.avatar_url || ''
+      baby_name: user?.baby_name || '',
+      baby_date_of_birth: user?.baby_date_of_birth || '',
+      gender: (user?.gender as 'Male' | 'Female' | 'Other') || 'Other',
+      blood_group: (user?.blood_group as 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-') || 'O+',
+      avatar_url: user?.avatar_url || '',
     }
   })
 
   React.useEffect(() => {
     if (user) {
       form.reset({
-        username: user.username || '',
         parent_name: user.parent_name || '',
         parent_mobile: user.parent_mobile || '',
-        gender: user.gender as 'Male' | 'Female' | 'Other' || 'Male',
-        blood_group: user.blood_group as 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-' || 'O+',
+        parent_email: user.parent_email || user.email || '',
         address: user.address || '',
         city: user.city || '',
         state: user.state || '',
         pin_code: user.pin_code || '',
-        avatar_url: user.avatar_url || ''
+        baby_name: user.baby_name || '',
+        baby_date_of_birth: user.baby_date_of_birth || '',
+        gender: user.gender as 'Male' | 'Female' | 'Other' || 'Other',
+        blood_group: user.blood_group as 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-' || 'O+',
+        avatar_url: user.avatar_url || '',
       })
     }
   }, [user, form])
 
   const onSubmit = async (data: ProfileUpdateForm) => {
-    console.log("Hello")
     try {
       setIsSubmitting(true);
+
+      const result = await form.trigger();
+      if (!result) {
+        toast.error('Please fix the form errors before submitting');
+        return;
+      }
+
       await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, data, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`
@@ -85,13 +99,13 @@ const ProfilePage = () => {
       });
       toast.success('Profile updated successfully!');
       setIsEditDialogOpen(false);
-      // Optionally refresh user data here
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to update profile. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
@@ -127,44 +141,59 @@ const ProfilePage = () => {
     return name?.split(' ').map(n => n[0]).join('').toUpperCase()
   }
 
+  const calculateAge = (birthDate: string) => {
+    if (!birthDate) return 'N/A'
+    const birth = new Date(birthDate)
+    const today = new Date()
+    const months = (today.getFullYear() - birth.getFullYear()) * 12 + (today.getMonth() - birth.getMonth())
+    
+    if (months < 12) {
+      return `${months} month${months !== 1 ? 's' : ''} old`
+    } else {
+      const years = Math.floor(months / 12)
+      const remainingMonths = months % 12
+      if (remainingMonths === 0) {
+        return `${years} year${years !== 1 ? 's' : ''} old`
+      } else {
+        return `${years}y ${remainingMonths}m old`
+      }
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-8 px-4">
-      <div className="max-w-4xl mx-auto space-y-8">
-        {/* Header */}
+      <div className="max-w-6xl mx-auto space-y-8">
         <div className="text-center space-y-2">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Profile
+            Child Profile
           </h1>
-          <p className="text-gray-600">Manage your personal information</p>
+          <p className="text-gray-600">Manage your child's information</p>
         </div>
 
-        {/* Main Profile Card */}
+        {/* Hero Card with Baby Info */}
         <Card className="overflow-hidden shadow-xl border-0 bg-white/80 backdrop-blur-sm">
-          <div className="h-32 bg-gradient-to-r from-blue-600 to-purple-600"></div>
+          <div className="h-32 bg-gradient-to-r from-pink-400 via-purple-500 to-blue-500"></div>
           <CardContent className="relative pt-0 pb-8">
-            {/* Profile Picture */}
             <div className="flex justify-center -mt-16 mb-6">
               <div className="relative">
                 <Avatar className="w-32 h-32 border-4 border-white shadow-lg">
-                  <AvatarImage src={user.avatar_url} alt={user.parent_name} />
-                  <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-blue-500 to-purple-500 text-white">
-                    {getInitials(user.parent_name)}
+                  <AvatarImage src={user.avatar_url} alt={user.baby_name} />
+                  <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-pink-500 to-purple-500 text-white">
+                    {getInitials(user.baby_name || 'Baby')}
                   </AvatarFallback>
                 </Avatar>
               </div>
             </div>
 
-            {/* User Info */}
             <div className="text-center space-y-2 mb-8">
-              <h2 className="text-3xl font-bold text-gray-900">{user.parent_name}</h2>
-              <p className="text-lg text-gray-600">@{user.username}</p>
+              <h2 className="text-3xl font-bold text-gray-900">{user.baby_name || 'Little One'}</h2>
+              <p className="text-lg text-gray-600">{calculateAge(user.baby_date_of_birth)}</p>
               <div className="flex items-center justify-center gap-2 text-gray-600">
-                <MapPin className="w-4 h-4" />
-                <span>{user.city}, {user.state}</span>
+                <Heart className="w-4 h-4 text-pink-500" />
+                <span>Loved by {user.parent_name}</span>
               </div>
             </div>
 
-            {/* Action Button */}
             <div className="flex justify-center mb-8">
               <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
                 <DialogTrigger asChild>
@@ -173,40 +202,27 @@ const ProfilePage = () => {
                     Edit Profile
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
-                    <DialogTitle>Edit Profile</DialogTitle>
+                    <DialogTitle>Edit Family Profile</DialogTitle>
                   </DialogHeader>
                   <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                      {/* Personal Information Section */}
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                      {/* Parent Information Section */}
                       <div className="space-y-4">
-                        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                          <UserIcon className="w-5 h-5" />
-                          Personal Information
+                        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2 border-b pb-2">
+                          <UserIcon className="w-5 h-5 text-blue-600" />
+                          Parent Information
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <FormField
-                            control={form.control}
-                            name="username"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Username</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="Enter username" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
                           <FormField
                             control={form.control}
                             name="parent_name"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Full Name</FormLabel>
+                                <FormLabel>Parent Name</FormLabel>
                                 <FormControl>
-                                  <Input placeholder="Enter your full name" {...field} />
+                                  <Input placeholder="Enter parent name" {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -221,6 +237,79 @@ const ProfilePage = () => {
                                 <FormControl>
                                   <Input placeholder="Enter mobile number" {...field} />
                                 </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="parent_email"
+                            render={({ field }) => (
+                              <FormItem className="md:col-span-2">
+                                <FormLabel>Email Address</FormLabel>
+                                <FormControl>
+                                  <Input type="email" placeholder="Enter email address" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+
+                      <Separator />
+
+                      {/* Baby Information Section */}
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2 border-b pb-2">
+                          <Baby className="w-5 h-5 text-pink-600" />
+                          Baby Information
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="baby_name"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Baby Name</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Enter baby name" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="baby_date_of_birth"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Date of Birth</FormLabel>
+                                <FormControl>
+                                  <Input type="date" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="gender"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Gender</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select gender" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="Male">Male</SelectItem>
+                                    <SelectItem value="Female">Female</SelectItem>
+                                    <SelectItem value="Other">Other</SelectItem>
+                                  </SelectContent>
+                                </Select>
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -252,18 +341,28 @@ const ProfilePage = () => {
                               </FormItem>
                             )}
                           />
+                          <FormField
+                            control={form.control}
+                            name="avatar_url"
+                            render={({ field }) => (
+                              <FormItem className="md:col-span-2">
+                                <FormLabel>Baby Photo URL (Optional)</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Enter photo URL" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
                         </div>
-
                       </div>
 
                       <Separator />
 
-
-
                       {/* Address Information Section */}
                       <div className="space-y-4">
-                        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                          <Home className="w-5 h-5" />
+                        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2 border-b pb-2">
+                          <Home className="w-5 h-5 text-green-600" />
                           Address Information
                         </h3>
                         <FormField
@@ -333,7 +432,6 @@ const ProfilePage = () => {
                             "Save Changes"
                           )}
                         </Button>
-                   
                       </div>
                     </form>
                   </Form>
@@ -343,75 +441,129 @@ const ProfilePage = () => {
           </CardContent>
         </Card>
 
-        <div className="">
-          <Card className="shadow-lg border-0 mb-6 bg-white/80 backdrop-blur-sm">
+        {/* Information Cards Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Baby Information Card */}
+          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-xl">
-                <UserIcon className="w-5 h-5 text-blue-600" />
-                Personal Information
+                <Baby className="w-5 h-5 text-pink-600" />
+                Baby Information
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-3">
-                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                  <Mail className="w-5 h-5 text-gray-500" />
+                <div className="flex items-center gap-3 p-3 bg-pink-50 rounded-lg">
+                  <Baby className="w-5 h-5 text-pink-500" />
                   <div>
-                    <p className="text-sm text-gray-500">Email</p>
-                    <p className="font-medium">{user.email}</p>
+                    <p className="text-sm text-pink-600">Name</p>
+                    <p className="font-medium">{user.baby_name || 'Not set'}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                  <Phone className="w-5 h-5 text-gray-500" />
+                <div className="flex items-center gap-3 p-3 bg-pink-50 rounded-lg">
+                  <Calendar className="w-5 h-5 text-pink-500" />
                   <div>
-                    <p className="text-sm text-gray-500">Mobile</p>
-                    <p className="font-medium">{user.parent_mobile}</p>
+                    <p className="text-sm text-pink-600">Date of Birth</p>
+                    <p className="font-medium">
+                      {user.baby_date_of_birth 
+                        ? new Date(user.baby_date_of_birth).toLocaleDateString()
+                        : 'Not set'
+                      }
+                    </p>
+                    {user.baby_date_of_birth && (
+                      <p className="text-xs text-pink-500">{calculateAge(user.baby_date_of_birth)}</p>
+                    )}
                   </div>
                 </div>
-                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                  <Droplets className="w-5 h-5 text-gray-500" />
-                  <div>
-                    <p className="text-sm text-gray-500">Blood Group</p>
-                    <Badge variant="secondary" className="mt-1">{user.blood_group}</Badge>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 bg-pink-50 rounded-lg">
+                    <p className="text-sm text-pink-600">Gender</p>
+                    <Badge variant="secondary" className="mt-1 bg-pink-100 text-pink-700">
+                      {user.gender || 'Not set'}
+                    </Badge>
+                  </div>
+                  <div className="p-3 bg-pink-50 rounded-lg">
+                    <p className="text-sm text-pink-600">Blood Group</p>
+                    <Badge variant="secondary" className="mt-1 bg-pink-100 text-pink-700">
+                      {user.blood_group || 'Not set'}
+                    </Badge>
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-
-
-          {/* Address Information */}
-          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm md:col-span-2">
+          {/* Parent Information Card */}
+          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-xl">
-                <Home className="w-5 h-5 text-green-600" />
-                Address Information
+                <UserIcon className="w-5 h-5 text-blue-600" />
+                Parent Information
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="p-3 bg-green-50 rounded-lg">
-                  <p className="text-sm text-green-600">Address</p>
-                  <p className="font-medium">{user.address}</p>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
+                  <UserIcon className="w-5 h-5 text-blue-500" />
+                  <div>
+                    <p className="text-sm text-blue-600">Name</p>
+                    <p className="font-medium">{user.parent_name}</p>
+                  </div>
                 </div>
-                <div className="p-3 bg-green-50 rounded-lg">
-                  <p className="text-sm text-green-600">City</p>
-                  <p className="font-medium">{user.city}</p>
+                <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
+                  <Mail className="w-5 h-5 text-blue-500" />
+                  <div>
+                    <p className="text-sm text-blue-600">Email</p>
+                    <p className="font-medium">{user.parent_email || user.email}</p>
+                  </div>
                 </div>
-                <div className="p-3 bg-green-50 rounded-lg">
-                  <p className="text-sm text-green-600">State & PIN</p>
-                  <p className="font-medium">{user.state} - {user.pin_code}</p>
+                <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
+                  <Phone className="w-5 h-5 text-blue-500" />
+                  <div>
+                    <p className="text-sm text-blue-600">Mobile</p>
+                    <p className="font-medium">{user.parent_mobile}</p>
+                  </div>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Account Info */}
+        {/* Address Information Card */}
+        <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <Home className="w-5 h-5 text-green-600" />
+              Address Information
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-4 bg-green-50 rounded-lg">
+                <p className="text-sm text-green-600 font-medium">Address</p>
+                <p className="mt-1">{user.address}</p>
+              </div>
+              <div className="p-4 bg-green-50 rounded-lg">
+                <p className="text-sm text-green-600 font-medium">City</p>
+                <p className="mt-1">{user.city}</p>
+              </div>
+              <div className="p-4 bg-green-50 rounded-lg">
+                <p className="text-sm text-green-600 font-medium">State & PIN</p>
+                <p className="mt-1">{user.state} - {user.pin_code}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Account Information Card */}
         <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
           <CardContent className="pt-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-sm text-gray-500">
-              <div>
+              <div className="space-y-1">
+                <p className="flex items-center gap-2">
+                  <span className="font-medium">Username:</span> 
+                  <Badge variant="outline" className="text-xs">{user.username}</Badge>
+                </p>
                 <p>Account created: {new Date(user.created_at).toLocaleDateString()}</p>
                 <p>Last updated: {new Date(user.updated_at).toLocaleDateString()}</p>
               </div>

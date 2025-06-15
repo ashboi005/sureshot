@@ -59,7 +59,6 @@ const router=  useRouter()
       }
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        console.log(error)
         const errorMessage = error.response?.data?.detail 
         toast.error(errorMessage)
       } else {
