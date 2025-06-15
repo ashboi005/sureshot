@@ -8,8 +8,6 @@ India’s vaccination system still faces huge challenges due to paper-based reco
 - QR-based Vaccine Confirmation: After each vaccination, parents present a unique QR code for the pending dose. The doctor scans it to confirm administration, instantly updating the record and sending confirmation via email and SMS to the parent.
 - Vaccination Drive Notifications: When a government vaccination drive is launched in a city, all eligible families receive automatic email and SMS alerts, including drive details. Healthcare workers assigned to the drive can view all required details and use the same QR-based system to confirm and log each administered dose.
 
-
-
 # Tech Stack we used:
 - Next.js for the frontend
 - FastAPI for the backend
@@ -18,18 +16,12 @@ India’s vaccination system still faces huge challenges due to paper-based reco
 - Vercel to deploy the frontend
 - Twilio API for SMS
 
-
-
-Our Team:
-Ashwath Soni[https://github.com/ashboi005]
-Tushar Dhingra[https://github.com/TDHINGRA16]
-Sahil Chabra[https://github.com/sahilchabra09]
-Harnoor Singh Arora[https://github.com/HarnoorSingh1234]
-Swayam Bhalotia[https://github.com/Qilton]
-
-
-
-Explore our work:
+# Our Team:
+[Ashwath Soni](https://github.com/ashboi005)
+[Tushar Dhingra](https://github.com/TDHINGRA16)
+[Sahil Chabra](https://github.com/sahilchabra09)
+[Harnoor Singh Arora](https://github.com/HarnoorSingh1234)
+[Swayam Bhalotia](https://github.com/Qilton)
 
 Solution Explainer Video: [YouTube Link Placeholder]
 Live Demo: https://sureshot-tutedude.vercel.app
