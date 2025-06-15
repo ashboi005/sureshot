@@ -14,7 +14,7 @@ export default function HeroContent() {
       <div className="text-center md:text-left">
         {/* Title section */}
         <div className="mb-2">
-          <h2 className="text-[#8ed500] font-bold text-xl tracking-wider">VAXTRACK</h2>
+          <h2 className="text-[#8ed500] font-bold text-xl tracking-wider">SURESHOT</h2>
         </div>
         
         {/* Content section */}

@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { workerApi } from "@/services/worker";
 import { Loader2, Users, Syringe, FileCheck, CalendarClock } from "lucide-react";
 import { VaccinationDrive } from "@/types/VaccinationDrives";
@@ -12,6 +13,28 @@ interface WorkerStat {
   value: string | number;
   description: string;
 }
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      stiffness: 100,
+      damping: 12
+    }
+  }
+};
 
 export function WorkerStatCards() {
   const [stats, setStats] = useState<WorkerStat[]>([]);
@@ -26,34 +49,21 @@ export function WorkerStatCards() {
         const activeDrives = drivesData.drives.filter((drive: VaccinationDrive) => drive.is_active).length;
         const totalDrives = drivesData.drives.length;
         
-        // For demonstration, we're using placeholder values for statistics that would
-        // require additional API calls in a real implementation
-        const placeholderVaccinated = Math.floor(Math.random() * 100) + 50; // Placeholder
+       
         const upcomingDrives = drivesData.drives.filter((drive: VaccinationDrive) => 
           new Date(drive.start_date) > new Date()
         ).length;
         
         setStats([
           {
-            icon: <Users className="h-6 w-6 text-blue-500" />,
+            icon: <Users className="h-6 w-6 text-[#8ed500]" />,
             label: "Active Drives",
             value: activeDrives,
             description: `Out of ${totalDrives} total drives`,
           },
+         
           {
-            icon: <Syringe className="h-6 w-6 text-green-500" />,
-            label: "Vaccinations Administered",
-            value: placeholderVaccinated,
-            description: "Total vaccinations given",
-          },
-          {
-            icon: <FileCheck className="h-6 w-6 text-purple-500" />,
-            label: "Pending Vaccinations",
-            value: Math.floor(Math.random() * 50) + 10, // Placeholder
-            description: "Requires your attention",
-          },
-          {
-            icon: <CalendarClock className="h-6 w-6 text-amber-500" />,
+            icon: <CalendarClock className="h-6 w-6 text-[#8ed500]" />,
             label: "Upcoming Drives",
             value: upcomingDrives,
             description: "Scheduled for the future",
@@ -64,25 +74,25 @@ export function WorkerStatCards() {
         // Provide fallback data if API call fails
         setStats([
           {
-            icon: <Users className="h-6 w-6 text-blue-500" />,
+            icon: <Users className="h-6 w-6 text-[#8ed500]" />,
             label: "Active Drives",
             value: "—",
             description: "Unable to load data",
           },
           {
-            icon: <Syringe className="h-6 w-6 text-green-500" />,
+            icon: <Syringe className="h-6 w-6 text-[#8ed500]" />,
             label: "Vaccinations Administered",
             value: "—",
             description: "Unable to load data",
           },
           {
-            icon: <FileCheck className="h-6 w-6 text-purple-500" />,
+            icon: <FileCheck className="h-6 w-6 text-[#8ed500]" />,
             label: "Pending Vaccinations",
             value: "—",
             description: "Unable to load data",
           },
           {
-            icon: <CalendarClock className="h-6 w-6 text-amber-500" />,
+            icon: <CalendarClock className="h-6 w-6 text-[#8ed500]" />,
             label: "Upcoming Drives",
             value: "—",
             description: "Unable to load data",
@@ -95,39 +105,54 @@ export function WorkerStatCards() {
     
     fetchStats();
   }, []);
-  
-  if (loading) {
+    if (loading) {
     return (
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {[1, 2, 3, 4].map((i) => (
-          <Card key={i} className="animate-pulse">
-            <CardHeader className="pb-2">
-              <div className="h-6 w-24 bg-muted rounded"></div>
-            </CardHeader>
-            <CardContent>
-              <div className="h-8 w-16 bg-muted rounded mb-2"></div>
-              <div className="h-4 w-32 bg-muted rounded"></div>
-            </CardContent>
-          </Card>
+          <div key={i} className="hover:scale-105 transition-transform duration-200">
+            <Card className="bg-[#141414] border-0 shadow-xl">
+              <CardHeader className="pb-2">
+                <div className="h-6 w-24 bg-[#1c1c1c] rounded"></div>
+              </CardHeader>
+              <CardContent>
+                <div className="h-8 w-16 bg-[#1c1c1c] rounded mb-2"></div>
+                <div className="h-4 w-32 bg-[#1c1c1c] rounded"></div>
+              </CardContent>
+            </Card>
+          </div>
         ))}
       </div>
     );
   }
   
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      {stats.map((stat, i) => (
-        <Card key={i}>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">{stat.label}</CardTitle>
-            {stat.icon}
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stat.value}</div>
-            <p className="text-xs text-muted-foreground">{stat.description}</p>
-          </CardContent>
-        </Card>
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
+    >      {stats.map((stat, i) => (
+        <motion.div
+          key={i}
+          variants={cardVariants}
+          className="h-full hover:scale-105 transition-transform duration-200"
+        >
+          <Card className="bg-[#141414] border-0 shadow-xl h-full">            
+            <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-[#222]">
+              <CardTitle className="text-sm font-medium text-white">{stat.label}</CardTitle>
+              <div>
+                {stat.icon}
+              </div>
+            </CardHeader>            
+            <CardContent className="pt-4">
+              <div className="text-2xl font-bold text-white">
+                {stat.value}
+              </div>
+              <p className="text-xs text-gray-400">{stat.description}</p>
+            </CardContent>
+          </Card>
+        </motion.div>
       ))}
-    </div>
+    </motion.div>
   );
 }
