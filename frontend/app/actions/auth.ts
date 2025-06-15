@@ -35,4 +35,6 @@ export async function setAuthCookies(
     path: "/",
     maxAge: parseInt(expiresIn),
   })
+  redirect('/user')
+  
 }

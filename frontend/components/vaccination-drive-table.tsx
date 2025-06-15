@@ -28,6 +28,7 @@ import {
   IconGripVertical,
   IconLayoutColumns,
   IconLoader,
+  IconDownload,
   IconQrcode,
 } from "@tabler/icons-react"
 import {
@@ -127,12 +128,64 @@ export function VaccinationDrivesTable({ userId }: { userId: string }) {
   React.useEffect(() => {
     fetchVaccinationDrives()
   }, [])
+  const handleDownloadCSV = () => {
+    if (data.length === 0) {
+      toast.warning("No data to download")
+      return
+    }
 
+    // Create CSV headers
+    const headers = [
+      "Drive Name",
+      "Status",
+      "City",
+      "Start Date",
+      "End Date",
+      "Assigned Workers"
+    ]
+
+    // Create CSV rows
+    const rows = data.map(item => {
+      const now = new Date()
+      const start = new Date(item.start_date)
+      const end = new Date(item.end_date)
+
+      let status = "Upcoming"
+      if (now > start && now < end) status = "Ongoing"
+      else if (now > end) status = "Completed"
+
+      return [
+        `"${item.vaccination_name}"`,
+        status,
+        `"${item.vaccination_city}"`,
+        `"${new Date(item.start_date).toLocaleDateString()}"`,
+        `"${new Date(item.end_date).toLocaleDateString()}"`,
+        item.assigned_workers.length
+      ]
+    })
+
+    // Combine headers and rows
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(row => row.join(","))
+    ].join("\n")
+
+    // Create download link
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.setAttribute("href", url)
+    link.setAttribute("download", `vaccination_drives_${new Date().toISOString().split('T')[0]}.csv`)
+    link.style.visibility = "hidden"
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
   const generateQRCode = async (driveId: string, driveName: string) => {
     setCurrentDrive({ driveId, driveName })
-    
+
     const url = `/worker/${userId}/${driveId}`
-    
+
     try {
       const qrDataUrl = await QRCode.toDataURL(url, {
         width: 300,
@@ -142,7 +195,7 @@ export function VaccinationDrivesTable({ userId }: { userId: string }) {
           light: '#141414'
         }
       })
-      
+
       setQrImageUrl(qrDataUrl)
       setQrDialogOpen(true)
     } catch (err) {
@@ -152,7 +205,7 @@ export function VaccinationDrivesTable({ userId }: { userId: string }) {
 
   const downloadQRCode = () => {
     if (!qrImageUrl || !currentDrive) return
-    
+
     const link = document.createElement('a')
     link.href = qrImageUrl
     link.download = `QR_${currentDrive.driveName}_${currentDrive.driveId}.png`
@@ -179,11 +232,11 @@ export function VaccinationDrivesTable({ userId }: { userId: string }) {
         const now = new Date()
         const start = new Date(row.original.start_date)
         const end = new Date(row.original.end_date)
-        
+
         let status = "Upcoming"
         let variant: "default" | "secondary" | "destructive" | "outline" = "secondary"
         let className = "bg-blue-500/20 text-blue-300 border-blue-500/30"
-        
+       
         if (now > start && now < end) {
           status = "Ongoing"
           variant = "outline"
@@ -200,6 +253,7 @@ export function VaccinationDrivesTable({ userId }: { userId: string }) {
           </Badge>
         )
       }
+
     },
     {
       accessorKey: "vaccination_city",
@@ -229,8 +283,8 @@ export function VaccinationDrivesTable({ userId }: { userId: string }) {
       id: "actions",
       header: "Actions",
       cell: ({ row }) => (
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           size="sm"
           className="border-[#333] bg-[#1d1212] hover:bg-[#8ed500]/10 hover:text-[#8ed500] hover:border-[#8ed500]/30"
           onClick={() => generateQRCode(row.original.id, row.original.vaccination_name)}
@@ -325,6 +379,7 @@ export function VaccinationDrivesTable({ userId }: { userId: string }) {
   }
 
   return (
+
     <motion.div 
       variants={containerVariants}
       initial="hidden"
@@ -337,11 +392,14 @@ export function VaccinationDrivesTable({ userId }: { userId: string }) {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="border-[#333] text-gray-300 hover:bg-[#1c1c1c] hover:text-white">
+
                 <IconLayoutColumns className="mr-2 h-4 w-4" />
                 Columns
               </Button>
             </DropdownMenuTrigger>
+
             <DropdownMenuContent align="end" className="bg-[#1c1c1c] border-[#333] text-gray-300">
+
               {table.getAllColumns()
                 .filter((column) => column.getCanHide())
                 .map((column) => (
@@ -350,6 +408,7 @@ export function VaccinationDrivesTable({ userId }: { userId: string }) {
                     checked={column.getIsVisible()}
                     onCheckedChange={(value) => column.toggleVisibility(!!value)}
                     className="hover:bg-[#333] hover:text-white"
+
                   >
                     {column.id}
                   </DropdownMenuCheckboxItem>
@@ -431,6 +490,7 @@ export function VaccinationDrivesTable({ userId }: { userId: string }) {
                   className="w-full max-w-xs"
                 />
               </div>
+
             )}
             <div className="text-sm text-gray-400 text-center">
               <p>Scan this code to register for the vaccination drive</p>

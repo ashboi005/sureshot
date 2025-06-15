@@ -25,6 +25,7 @@ import {
   IconChevronDown,
   IconChevronLeft,
   IconChevronRight,
+  IconDownload,
   IconGripVertical,
   IconLayoutColumns,
   IconLoader,
@@ -292,6 +293,7 @@ export function VaccinationHistoryTable({ userId }: VaccinationHistoryTableProps
     },
   ]
 
+
   const fetchVaccinationHistory = async () => {
     try {
       const response = await axios.get(
@@ -413,6 +415,7 @@ export function VaccinationHistoryTable({ userId }: VaccinationHistoryTableProps
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="bg-[#1c1c1c] border-[#333] text-gray-300">
+
               {table.getAllColumns()
                 .filter((column) => column.getCanHide())
                 .map((column) => (
@@ -421,6 +424,7 @@ export function VaccinationHistoryTable({ userId }: VaccinationHistoryTableProps
                     checked={column.getIsVisible()}
                     onCheckedChange={(value) => column.toggleVisibility(!!value)}
                     className="hover:bg-[#333] hover:text-white"
+
                   >
                     {column.id}
                   </DropdownMenuCheckboxItem>
@@ -428,7 +432,6 @@ export function VaccinationHistoryTable({ userId }: VaccinationHistoryTableProps
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-
         <div className="rounded-md border border-[#333] overflow-hidden">
           <DndContext
             sensors={sensors}
