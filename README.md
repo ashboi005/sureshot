@@ -1,93 +1,38 @@
-# VaxTrack - Vaccine Tracking System
+# SureShot: Digital Immunization Records & Coordinated Health Drives
+India’s vaccination system still faces huge challenges due to paper-based records, which can easily get lost or damaged. This leads to missed vaccine doses, incomplete histories, and inefficient public health drives. Our team built a comprehensive digital solution that empowers parents, doctors, and healthcare workers—making immunization tracking seamless, timely, and transparent.
 
-VaxTrack is a comprehensive vaccine management system designed to help doctors, patients, and healthcare workers track and manage vaccination schedules efficiently.
+# What we built:
+- Digital Vaccination Card: Every child is registered by a doctor at birth or first visit, and their vaccination card is securely digitized. The card shows a clear vaccination schedule and automatically logs every administered dose.
+- Automated Reminders: Parents receive timely reminders via email and SMS—30, 15, 7, and 1 day before each scheduled vaccination. This helps ensure no dose is forgotten and improves overall coverage.
+- Vaccination History & Doctor Access: Both parents and doctors have access to a child’s up-to-date vaccination history. This enables any doctor to quickly review and update records, improving continuity of care.
+- QR-based Vaccine Confirmation: After each vaccination, parents present a unique QR code for the pending dose. The doctor scans it to confirm administration, instantly updating the record and sending confirmation via email and SMS to the parent.
+- Vaccination Drive Notifications: When a government vaccination drive is launched in a city, all eligible families receive automatic email and SMS alerts, including drive details. Healthcare workers assigned to the drive can view all required details and use the same QR-based system to confirm and log each administered dose.
 
-## Features
 
-### Doctor Dashboard
-- **Enhanced UI**: Modern, intuitive interface with improved visualization of patient data and vaccination statistics
-- **QR Code Scanning**: Doctors can scan patient QR codes to quickly administer vaccines
-- **Real-time Updates**: Immediate updates to vaccination records after administration
-- **Patient Management**: View and manage patient details, vaccination schedules, and history
 
-### QR-based Vaccine Administration
-- Doctors can scan patient QR codes (format: `http://localhost:3000/customers/home/register/{User-id}/vaccine_template_id`)
-- The system automatically extracts user_id and vaccine_template_id from the QR code
-- Form pre-populated with doctor's ID and current date
-- Notes field for doctor's observations
-- Elegant loading and success animations during vaccine administration
+# Tech Stack we used:
+- Next.js for the frontend
+- FastAPI for the backend
+- Supabase for auth, database and storage
+- AWS Lambda with Docker to deploy the backend
+- Vercel to deploy the frontend
+- Twilio API for SMS
 
-## Tech Stack
 
-### Frontend
-- Next.js
-- TypeScript
-- TailwindCSS
-- Shadcn UI Components
-- Framer Motion (animations)
 
-### Backend
-- FastAPI (Python)
-- SQLAlchemy ORM
-- PostgreSQL
-- Alembic (migrations)
+Our Team:
+Ashwath Soni[https://github.com/ashboi005]
+Tushar Dhingra[https://github.com/TDHINGRA16]
+Sahil Chabra[https://github.com/sahilchabra09]
+Harnoor Singh Arora[https://github.com/HarnoorSingh1234]
+Swayam Bhalotia[https://github.com/Qilton]
 
-## Getting Started
 
-1. Clone the repository
-2. Install dependencies:
-   ```bash
-   cd frontend
-   npm install
-   
-   cd ../backend
-   pip install -r requirements.txt
-   ```
-3. Set up environment variables
-4. Run the development servers:
-   ```bash
-   # Frontend
-   cd frontend
-   npm run dev
-   
-   # Backend
-   cd backend
-   uvicorn main:app --reload
-   ```
 
-## QR Scanning Feature
+Explore our work:
 
-The QR scanning feature lets doctors quickly administer vaccines by scanning a patient's QR code. The workflow is:
+Solution Explainer Video: [YouTube Link Placeholder]
+Live Demo: https://sureshot-tutedude.vercel.app
 
-1. Doctor scans the QR code using the "Scan Vaccine QR" button
-2. The system extracts user_id and vaccine_template_id from the QR URL
-3. Doctor adds optional notes
-4. System records the administration with current date and doctor's ID
-5. Patient records are immediately updated
+Note: if it's been some while since this post was mode, there is a good chance the live demo has stopped working since Supabase automatically pauses inactive projects after 
 
-## API Endpoints
-
-### Vaccine Administration
-```
-POST /Prod/vaccination/administer
-```
-
-**Request Body:**
-```json
-{
-  "user_id": "string",
-  "vaccine_template_id": "string",
-  "dose_number": 0,
-  "doctor_id": "string",
-  "administered_date": "YYYY-MM-DD",
-  "notes": "string"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Vaccine successfully administered"
-}
-```
