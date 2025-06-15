@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,8 +18,10 @@ import { VaccineRecord } from "@/types/VaccineRecord";
 import { getMyPatients, getVaccinationSchedule, getDueVaccinations, getVaccinationHistory, markVaccineAdministered } from "@/lib/api/doctors";
 import { toast } from "sonner";
 import useUser from "@/hooks/useUser";
+import { Loader2 } from "lucide-react";
 
-export default function DoctorDashboardPage() {
+// Extract content that uses hooks into a separate component
+function DoctorDashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -523,7 +525,25 @@ export default function DoctorDashboardPage() {
         userId={qrScannedData.userId}
         vaccineTemplateId={qrScannedData.vaccineTemplateId}
         doseNumber={qrScannedData.doseNumber}
-      />
-    </div>
+      />    </div>
+  );
+}
+
+// Export default with Suspense boundary
+export default function DoctorDashboardPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto" />
+          <h2 className="text-2xl font-semibold text-gray-800">Loading Doctor Dashboard</h2>
+          <p className="text-gray-600 max-w-md">
+            Please wait while we prepare your dashboard...
+          </p>
+        </div>
+      </div>
+    }>
+      <DoctorDashboardContent />
+    </Suspense>
   );
 }
