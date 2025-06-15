@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
@@ -26,14 +26,14 @@ const itemVariants = {
     y: 0, 
     opacity: 1,
     transition: { 
-      type: "spring" as const,
       stiffness: 100,
       damping: 12
     }
   }
 };
 
-const WorkerPage = () => {
+// Extract content that uses useSearchParams and usePathname into a separate component
+function WorkerDashboardContent() {
   const { user } = useUser();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -150,4 +150,21 @@ const WorkerPage = () => {
   )
 }
 
-export default WorkerPage
+// Export default with Suspense boundary
+export default function WorkerPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-gray-900 to-black">
+        <div className="text-center space-y-4">
+          <div className="h-12 w-12 animate-spin text-[#8ed500] mx-auto border-4 border-[#8ed500] border-t-transparent rounded-full"></div>
+          <h2 className="text-2xl font-semibold text-white">Loading Worker Dashboard</h2>
+          <p className="text-gray-400 max-w-md">
+            Please wait while we prepare your dashboard...
+          </p>
+        </div>
+      </div>
+    }>
+      <WorkerDashboardContent />
+    </Suspense>
+  );
+}
