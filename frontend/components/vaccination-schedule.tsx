@@ -151,8 +151,9 @@ export function VaccinationScheduleTable({ userId }: VaccinationScheduleTablePro
         width: 300,
         margin: 2,
         color: {
-          dark: '#8ed500',
-          light: '#141414'
+          dark: '#000000',
+          light: '#ffffff'
+
         }
       })
       
