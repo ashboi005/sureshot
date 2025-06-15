@@ -2,16 +2,22 @@
 
 import { BarChart3, Calendar, LogOut, Map, Settings, Shield, Stethoscope, Syringe, Users } from "lucide-react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { ModeToggle } from "../theme/mode-toggle"
 import { Button } from "@/components/ui/button"
 
 export function AdminSidebar() {
   const pathname = usePathname()
+  const router = useRouter()
 
   const isActive = (path: string) => {
     return pathname === path || pathname.startsWith(path)
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem('accessToken')
+    localStorage.removeItem('token')
+    router.push('/auth/login')
   }
 
   const menuItems = [
@@ -48,11 +54,11 @@ export function AdminSidebar() {
   ]
 
   return (
-    <div className="flex h-screen w-full flex-col bg-card border-r border-border overflow-y-auto">
+    <div className="flex h-screen w-full flex-col bg-white border-r border-gray-200 overflow-y-auto">
       {/* Header */}
-      <div className="flex items-center gap-2 p-4 border-b border-border shrink-0">
-        <Shield className="h-6 w-6 text-primary" />
-        <div className="font-semibold text-lg">VacMS Admin</div>
+      <div className="flex items-center gap-2 p-4 border-b border-gray-200 shrink-0">
+        <Shield className="h-6 w-6 text-gray-900" />
+        <div className="font-semibold text-lg text-gray-900">VacMS Admin</div>
       </div>
 
       {/* Navigation */}
@@ -64,10 +70,10 @@ export function AdminSidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
+                "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                 isActive(item.href)
-                  ? "bg-accent text-accent-foreground"
-                  : "text-muted-foreground"
+                  ? "bg-gray-900 text-white"
+                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
               )}
             >
               <Icon className="h-4 w-4" />
@@ -78,9 +84,13 @@ export function AdminSidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="flex items-center justify-between p-4 border-t border-border shrink-0">
-        <ModeToggle />
-        <Button variant="ghost" size="icon">
+      <div className="flex items-center justify-end p-4 border-t border-gray-200 shrink-0">
+        <Button 
+          variant="ghost" 
+          size="icon"
+          onClick={handleLogout}
+          className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+        >
           <LogOut className="h-4 w-4" />
         </Button>
       </div>

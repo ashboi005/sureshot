@@ -5,16 +5,15 @@ import { useRouter } from 'next/navigation';
 import { Loader2 } from "lucide-react";
 
 interface PageProps {
-  params: {
+  params: Promise<{
     userId: string;
     vaccineId: string;
-  };
+  }>;
 }
 
 export default function DoctorQRRedirectPage({ params }: PageProps) {
   const router = useRouter();
-  // Cast params to the correct type before using React.use()
-  const resolvedParams = React.use(params as unknown as Promise<{ userId: string; vaccineId: string }>);    useEffect(() => {
+  const resolvedParams = React.use(params);useEffect(() => {
     // Redirect to the doctor dashboard with QR parameters
     // This ensures the doctor's main page handles the vaccine administration
     if (resolvedParams.userId && resolvedParams.vaccineId) {

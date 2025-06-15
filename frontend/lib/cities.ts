@@ -1,36 +1,12 @@
-import { City } from 'country-state-city';
+// Type definition for city options
+export interface CityOption {
+  value: string;
+  label: string;
+}
 
-// Cache for cities to prevent repeated API calls
-let cachedIndianCities: { value: string; label: string }[] | null = null;
-
-// Get all Indian cities
-export const getIndianCities = () => {
-  if (cachedIndianCities) {
-    return cachedIndianCities;
-  }
-
-  const cities = City.getCitiesOfCountry('IN');
-  if (!cities) return [];
-  
-  // Create a map to deduplicate by city name (case-insensitive)
-  const cityMap = new Map();
-  
-  cities.forEach(city => {
-    const normalizedName = city.name.toLowerCase().trim();
-    if (!cityMap.has(normalizedName)) {
-      cityMap.set(normalizedName, {
-        value: city.name,
-        label: city.name
-      });
-    }
-  });
-  
-  cachedIndianCities = Array.from(cityMap.values()).sort((a, b) => a.label.localeCompare(b.label));
-  return cachedIndianCities;
-};
-
-// Popular Indian cities for faster selection
-export const popularIndianCities = [
+// Comprehensive Indian cities list - optimized for performance with search
+export const popularIndianCities: CityOption[] = [
+  // Major Metro Cities
   { value: "Mumbai", label: "Mumbai" },
   { value: "Delhi", label: "Delhi" },
   { value: "Bangalore", label: "Bangalore" },
@@ -39,51 +15,247 @@ export const popularIndianCities = [
   { value: "Kolkata", label: "Kolkata" },
   { value: "Pune", label: "Pune" },
   { value: "Ahmedabad", label: "Ahmedabad" },
+  
+  // State Capitals & Important Cities
   { value: "Jaipur", label: "Jaipur" },
-  { value: "Surat", label: "Surat" },
   { value: "Lucknow", label: "Lucknow" },
+  { value: "Bhopal", label: "Bhopal" },
+  { value: "Patna", label: "Patna" },
+  { value: "Chandigarh", label: "Chandigarh" },
+  { value: "Thiruvananthapuram", label: "Thiruvananthapuram" },
+  { value: "Bhubaneswar", label: "Bhubaneswar" },
+  { value: "Gandhinagar", label: "Gandhinagar" },
+  { value: "Shimla", label: "Shimla" },
+  { value: "Srinagar", label: "Srinagar" },
+  { value: "Jammu", label: "Jammu" },
+  { value: "Ranchi", label: "Ranchi" },
+  { value: "Raipur", label: "Raipur" },
+  { value: "Dehradun", label: "Dehradun" },
+  { value: "Imphal", label: "Imphal" },
+  { value: "Shillong", label: "Shillong" },
+  { value: "Aizawl", label: "Aizawl" },
+  { value: "Kohima", label: "Kohima" },
+  { value: "Itanagar", label: "Itanagar" },
+  { value: "Gangtok", label: "Gangtok" },
+  { value: "Agartala", label: "Agartala" },
+  { value: "Dispur", label: "Dispur" },
+  { value: "Panaji", label: "Panaji" },
+  
+  // Major Cities by Population
+  { value: "Surat", label: "Surat" },
   { value: "Kanpur", label: "Kanpur" },
   { value: "Nagpur", label: "Nagpur" },
   { value: "Indore", label: "Indore" },
   { value: "Thane", label: "Thane" },
-  { value: "Bhopal", label: "Bhopal" },
   { value: "Visakhapatnam", label: "Visakhapatnam" },
-  { value: "Pimpri-Chinchwad", label: "Pimpri-Chinchwad" },
-  { value: "Patna", label: "Patna" },
   { value: "Vadodara", label: "Vadodara" },
-];
-
-// Cache for combined cities
-let cachedCombinedCities: any[] | null = null;
-
-export const getCombinedCities = () => {
-  if (cachedCombinedCities) {
-    return cachedCombinedCities;
-  }
-
-  const allCities = getIndianCities();
-  const popularCityNames = new Set(popularIndianCities.map(city => city.value.toLowerCase().trim()));
-  
-  // Remove popular cities from all cities and ensure no duplicates
-  const otherCities = allCities
-    .filter(city => !popularCityNames.has(city.value.toLowerCase().trim()))
-    .reduce((unique: { value: string; label: string }[], city) => {
-      // Check if city already exists in the unique array (case-insensitive)
-      const exists = unique.some((existingCity: { value: string; label: string }) => 
-        existingCity.value.toLowerCase().trim() === city.value.toLowerCase().trim()
-      );
-      if (!exists) {
-        unique.push(city);
-      }
-      return unique;
-    }, [])
-    .sort((a: { label: string }, b: { label: string }) => a.label.localeCompare(b.label));
-  
-  cachedCombinedCities = [
-    ...popularIndianCities,
-    { value: "separator", label: "─────── Other Cities ───────", disabled: true },
-    ...otherCities
-  ];
-  
-  return cachedCombinedCities;
-};
+  { value: "Ghaziabad", label: "Ghaziabad" },
+  { value: "Ludhiana", label: "Ludhiana" },
+  { value: "Agra", label: "Agra" },
+  { value: "Nashik", label: "Nashik" },
+  { value: "Faridabad", label: "Faridabad" },
+  { value: "Meerut", label: "Meerut" },
+  { value: "Rajkot", label: "Rajkot" },
+  { value: "Varanasi", label: "Varanasi" },
+  { value: "Jodhpur", label: "Jodhpur" },
+  { value: "Amritsar", label: "Amritsar" },
+  { value: "Allahabad", label: "Allahabad" },
+  { value: "Coimbatore", label: "Coimbatore" },
+  { value: "Jabalpur", label: "Jabalpur" },
+  { value: "Gwalior", label: "Gwalior" },
+  { value: "Vijayawada", label: "Vijayawada" },
+  { value: "Madurai", label: "Madurai" },
+  { value: "Guwahati", label: "Guwahati" },
+  { value: "Solapur", label: "Solapur" },
+  { value: "Tiruchirappalli", label: "Tiruchirappalli" },
+  { value: "Bareilly", label: "Bareilly" },
+  { value: "Mysore", label: "Mysore" },
+  { value: "Tiruppur", label: "Tiruppur" },
+  { value: "Gurgaon", label: "Gurgaon" },
+  { value: "Aligarh", label: "Aligarh" },
+  { value: "Jalandhar", label: "Jalandhar" },
+  { value: "Salem", label: "Salem" },
+  { value: "Warangal", label: "Warangal" },
+  { value: "Guntur", label: "Guntur" },
+  { value: "Saharanpur", label: "Saharanpur" },
+  { value: "Gorakhpur", label: "Gorakhpur" },
+  { value: "Bikaner", label: "Bikaner" },
+  { value: "Amravati", label: "Amravati" },
+  { value: "Noida", label: "Noida" },
+  { value: "Jamshedpur", label: "Jamshedpur" },
+  { value: "Bhilai", label: "Bhilai" },
+  { value: "Cuttack", label: "Cuttack" },
+  { value: "Firozabad", label: "Firozabad" },
+  { value: "Kochi", label: "Kochi" },
+  { value: "Nellore", label: "Nellore" },
+  { value: "Bhavnagar", label: "Bhavnagar" },
+  { value: "Durgapur", label: "Durgapur" },  { value: "Asansol", label: "Asansol" },
+  { value: "Rourkela", label: "Rourkela" },
+  { value: "Nanded", label: "Nanded" },
+  { value: "Kolhapur", label: "Kolhapur" },
+  { value: "Ajmer", label: "Ajmer" },
+  { value: "Akola", label: "Akola" },
+  { value: "Gulbarga", label: "Gulbarga" },
+  { value: "Jamnagar", label: "Jamnagar" },
+  { value: "Ujjain", label: "Ujjain" },
+  { value: "Siliguri", label: "Siliguri" },
+  { value: "Jhansi", label: "Jhansi" },
+  { value: "Mangalore", label: "Mangalore" },
+  { value: "Erode", label: "Erode" },
+  { value: "Belgaum", label: "Belgaum" },
+  { value: "Tirunelveli", label: "Tirunelveli" },
+  { value: "Gaya", label: "Gaya" },
+  { value: "Jalgaon", label: "Jalgaon" },
+  { value: "Udaipur", label: "Udaipur" },
+  { value: "Kota", label: "Kota" },
+  { value: "Bokaro Steel City", label: "Bokaro Steel City" },
+  { value: "Malappuram", label: "Malappuram" },
+  { value: "Khammam", label: "Khammam" },
+  { value: "Sambalpur", label: "Sambalpur" },
+  { value: "Nadiad", label: "Nadiad" },
+  { value: "Davangere", label: "Davangere" },
+  { value: "Kozhikode", label: "Kozhikode" },
+  { value: "Kurnool", label: "Kurnool" },
+  { value: "Rajahmundry", label: "Rajahmundry" },
+  { value: "Muzaffarpur", label: "Muzaffarpur" },
+  { value: "Latur", label: "Latur" },
+  { value: "Dhule", label: "Dhule" },
+  { value: "Rohtak", label: "Rohtak" },
+  { value: "Korba", label: "Korba" },
+  { value: "Bhagalpur", label: "Bhagalpur" },
+  { value: "Arrah", label: "Arrah" },
+  { value: "Karimnagar", label: "Karimnagar" },
+  { value: "Purnia", label: "Purnia" },
+  { value: "Satna", label: "Satna" },
+  { value: "Jalna", label: "Jalna" },
+  { value: "Karur", label: "Karur" },
+  { value: "Bihar Sharif", label: "Bihar Sharif" },
+  { value: "Panipat", label: "Panipat" },
+  { value: "Darbhanga", label: "Darbhanga" },
+  { value: "Dewas", label: "Dewas" },
+  { value: "Ichalkaranji", label: "Ichalkaranji" },
+  { value: "Karnal", label: "Karnal" },
+  { value: "Bathinda", label: "Bathinda" },
+  { value: "Eluru", label: "Eluru" },
+  { value: "Barabanki", label: "Barabanki" },
+  { value: "Mau", label: "Mau" },
+  { value: "Sonipat", label: "Sonipat" },
+  { value: "Farrukhabad", label: "Farrukhabad" },
+  { value: "Sagar", label: "Sagar" },
+  { value: "Durg", label: "Durg" },
+  { value: "Ratlam", label: "Ratlam" },
+  { value: "Hapur", label: "Hapur" },
+  { value: "Anantapur", label: "Anantapur" },
+  { value: "Etawah", label: "Etawah" },
+  { value: "Bharatpur", label: "Bharatpur" },
+  { value: "Begusarai", label: "Begusarai" },
+  { value: "New Delhi", label: "New Delhi" },
+  { value: "Gandhidham", label: "Gandhidham" },
+  { value: "Pondicherry", label: "Pondicherry" },
+  { value: "Sikar", label: "Sikar" },
+  { value: "Thoothukudi", label: "Thoothukudi" },
+  { value: "Rewa", label: "Rewa" },
+  { value: "Mirzapur", label: "Mirzapur" },
+  { value: "Raichur", label: "Raichur" },
+  { value: "Pali", label: "Pali" },
+  { value: "Haridwar", label: "Haridwar" },
+  { value: "Vijayanagaram", label: "Vijayanagaram" },
+  { value: "Katihar", label: "Katihar" },
+  { value: "Nagarcoil", label: "Nagarcoil" },
+  { value: "Sri Ganganagar", label: "Sri Ganganagar" },
+  { value: "Thanjavur", label: "Thanjavur" },
+  { value: "Bulandshahr", label: "Bulandshahr" },
+  { value: "Murwara", label: "Murwara" },
+  { value: "Sambhal", label: "Sambhal" },
+  { value: "Singrauli", label: "Singrauli" },
+  { value: "Jaunpur", label: "Jaunpur" },
+  { value: "Serampore", label: "Serampore" },
+  { value: "Baharampur", label: "Baharampur" },
+  { value: "Unnao", label: "Unnao" },
+  { value: "Machilipatnam", label: "Machilipatnam" },
+  { value: "Shimoga", label: "Shimoga" },
+  { value: "Adoni", label: "Adoni" },
+  { value: "Tenali", label: "Tenali" },
+  { value: "Proddatur", label: "Proddatur" },
+  { value: "Saharsa", label: "Saharsa" },
+  { value: "Hindupur", label: "Hindupur" },
+  { value: "Sasaram", label: "Sasaram" },
+  { value: "Hajipur", label: "Hajipur" },
+  { value: "Bhimavaram", label: "Bhimavaram" },
+  { value: "Dehri", label: "Dehri" },
+  { value: "Madanapalle", label: "Madanapalle" },
+  { value: "Siwan", label: "Siwan" },
+  { value: "Bettiah", label: "Bettiah" },
+  { value: "Guntakal", label: "Guntakal" },
+  { value: "Srikakulam", label: "Srikakulam" },
+  { value: "Motihari", label: "Motihari" },
+  { value: "Dharmavaram", label: "Dharmavaram" },
+  { value: "Gudivada", label: "Gudivada" },
+  { value: "Narasaraopet", label: "Narasaraopet" },
+  { value: "Bagaha", label: "Bagaha" },
+  { value: "Miryalaguda", label: "Miryalaguda" },
+  { value: "Tadipatri", label: "Tadipatri" },
+  { value: "Kishanganj", label: "Kishanganj" },
+  { value: "Karaikudi", label: "Karaikudi" },
+  { value: "Suryapet", label: "Suryapet" },
+  { value: "Jamalpur", label: "Jamalpur" },
+  { value: "Kavali", label: "Kavali" },
+  { value: "Tadepalligudem", label: "Tadepalligudem" },
+  { value: "Amaravati", label: "Amaravati" },
+  { value: "Buxar", label: "Buxar" },
+  { value: "Jehanabad", label: "Jehanabad" },
+  { value: "Aurangabad", label: "Aurangabad" },
+  { value: "Hospet", label: "Hospet" },
+  { value: "Bhiwani", label: "Bhiwani" },  { value: "Nagercoil", label: "Nagercoil" },
+  { value: "Pathankot", label: "Pathankot" },
+  { value: "Nizamabad", label: "Nizamabad" },
+  { value: "Berhampur", label: "Berhampur" },
+  { value: "Muzaffarnagar", label: "Muzaffarnagar" },
+  { value: "Mathura", label: "Mathura" },
+  { value: "Rampur", label: "Rampur" },
+  { value: "Shahjahanpur", label: "Shahjahanpur" },
+  { value: "Haldwani", label: "Haldwani" },
+  { value: "Morena", label: "Morena" },
+  { value: "Chapra", label: "Chapra" },
+  { value: "Anand", label: "Anand" },
+  { value: "Sangli", label: "Sangli" },
+  { value: "Satara", label: "Satara" },
+  { value: "Ahmednagar", label: "Ahmednagar" },
+  { value: "Rae Bareli", label: "Rae Bareli" },
+  { value: "Hardoi", label: "Hardoi" },
+  { value: "Fatehpur", label: "Fatehpur" },
+  { value: "Moradabad", label: "Moradabad" },
+  { value: "Pilibhit", label: "Pilibhit" },
+  { value: "Shivpuri", label: "Shivpuri" },
+  { value: "Guna", label: "Guna" },
+  { value: "Vidisha", label: "Vidisha" },
+  { value: "Chittorgarh", label: "Chittorgarh" },
+  { value: "Bharuch", label: "Bharuch" },
+  { value: "Veraval", label: "Veraval" },
+  { value: "Bhuj", label: "Bhuj" },
+  { value: "Palakkad", label: "Palakkad" },
+  { value: "Thrissur", label: "Thrissur" },
+  { value: "Alappuzha", label: "Alappuzha" },
+  { value: "Kannur", label: "Kannur" },
+  { value: "Kollam", label: "Kollam" },
+  { value: "Kumbakonam", label: "Kumbakonam" },
+  { value: "Dindigul", label: "Dindigul" },
+  { value: "Cuddalore", label: "Cuddalore" },
+  { value: "Kanchipuram", label: "Kanchipuram" },
+  { value: "Ramanathapuram", label: "Ramanathapuram" },
+  { value: "Ongole", label: "Ongole" },
+  { value: "Adilabad", label: "Adilabad" },
+  { value: "Khanapur", label: "Khanapur" },
+  { value: "Mahbubnagar", label: "Mahbubnagar" },
+  { value: "Medak", label: "Medak" },
+  { value: "Baramulla", label: "Baramulla" },
+  { value: "Sopore", label: "Sopore" },
+  { value: "Kathua", label: "Kathua" },
+  { value: "Punch", label: "Punch" },
+  { value: "Rajouri", label: "Rajouri" },
+  { value: "Anantnag", label: "Anantnag" },
+  { value: "Badgam", label: "Badgam" },  { value: "Bandipora", label: "Bandipora" },
+  { value: "Kupwara", label: "Kupwara" },
+  { value: "Pulwama", label: "Pulwama" },
+  { value: "Shopian", label: "Shopian" }
+]
