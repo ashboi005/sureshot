@@ -78,7 +78,7 @@ export default function Features() {
         >
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 letter-spacing-2">COMPREHENSIVE VACCINATION MANAGEMENT</h2>
           <p className="max-w-2xl mx-auto text-xl text-gray-300">
-            VaxTrack offers powerful features designed to streamline vaccination programs and improve healthcare outcomes.
+            SureShot offers powerful features designed to streamline vaccination programs and improve healthcare outcomes.
           </p>
         </motion.div>
         

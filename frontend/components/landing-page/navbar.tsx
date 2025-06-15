@@ -94,7 +94,7 @@ export default function Navbar() {
             <div className="flex-shrink-0 flex items-center">
               <Link href="/" className="flex items-center space-x-2">
                 <span className="text-xl font-bold bg-gradient-to-r from-[#8ed500] to-[#a5f506] bg-clip-text text-transparent">
-                  VaxTrack
+                  SureShot
                 </span>
               </Link>
             </div>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { WorkerProfileCard } from '@/components/worker/worker-profile-card';
 import { WorkerStatCards } from '@/components/worker/worker-stat-cards';
@@ -9,7 +10,31 @@ import { WorkerVaccinationDrives } from '@/components/worker/worker-vaccination-
 import { WorkerQRScanDialog } from '@/components/worker/worker-qr-scan-dialog';
 import useUser from "@/hooks/useUser";
 
-const WorkerPage = () => {  const { user } = useUser();
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0, 
+    opacity: 1,
+    transition: { 
+      type: "spring" as const,
+      stiffness: 100,
+      damping: 12
+    }
+  }
+};
+
+const WorkerPage = () => {
+  const { user } = useUser();
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -62,40 +87,58 @@ const WorkerPage = () => {  const { user } = useUser();
     // Refresh the current page to update data
     router.refresh();
   };
-
   return (
-    <div className="container mx-auto py-6 space-y-8">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-2 md:space-y-0">
-        <h2 className="text-3xl font-bold tracking-tight">Worker Dashboard</h2>
-        <Button 
-          onClick={() => setQrScanOpen(true)}
-          className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="space-y-8"
+    >
+      <motion.div
+        variants={itemVariants}
+        className="flex flex-col md:flex-row md:items-center md:justify-between space-y-2 md:space-y-0"
+      >
+        <h2 className="text-3xl font-bold tracking-tight text-white">Worker Dashboard</h2>
+        <motion.div
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
         >
-          <svg 
-            className="w-5 h-5 mr-2" 
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24" 
-            xmlns="http://www.w3.org/2000/svg"
+          <Button 
+            onClick={() => setQrScanOpen(true)}
+            className="bg-[#8ed500] hover:bg-[#a5ec1c] text-[#141414] hover:text-[#141414] transition-all duration-300"
           >
-            <path 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              strokeWidth={2} 
-              d="M12 4v1m6 11h2m-6 0h-2m0 0v7m0-7h-6m6 0l-4-4m0 0l4-4m-4 4h12" 
-            />
-          </svg>
-          Scan QR Code
-        </Button>
-      </div>
+            <svg 
+              className="w-5 h-5 mr-2" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24" 
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                strokeWidth={2} 
+                d="M12 4v1m6 11h2m-6 0h-2m0 0v7m0-7h-6m6 0l-4-4m0 0l4-4m-4 4h12" 
+              />
+            </svg>
+            Scan QR Code
+          </Button>
+        </motion.div>
+      </motion.div>
       
-      <WorkerStatCards />
+      <motion.div variants={itemVariants}>
+        <WorkerStatCards />
+      </motion.div>
       
-      <div className="grid gap-6">
+      <motion.div 
+        variants={itemVariants} 
+        className="grid gap-6"
+      >
         <WorkerProfileCard />
         <WorkerVaccinationDrives />
-      </div>
-        {/* QR Scan Dialog */}
+      </motion.div>
+      
+      {/* QR Scan Dialog */}
       <WorkerQRScanDialog 
         open={qrScanOpen}
         onOpenChange={setQrScanOpen}
@@ -103,7 +146,7 @@ const WorkerPage = () => {  const { user } = useUser();
         userId={qrScannedData.userId}
         driveId={qrScannedData.driveId}
       />
-    </div>
+    </motion.div>
   )
 }
 
