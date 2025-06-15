@@ -1,0 +1,216 @@
+/* Custom styles for React DayPicker to match admin theme */
+.rdp {
+  margin: 0;
+  background: white;
+  border-radius: 0.5rem;
+  font-family: inherit;
+}
+
+.rdp-months {
+  display: flex;
+  flex-direction: column;
+}
+
+.rdp-month {
+  margin: 0;
+  padding: 1rem;
+}
+
+.rdp-caption {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-bottom: 1rem;
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.rdp-caption_label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 2rem;
+  min-width: 120px;
+  text-align: center;
+}
+
+.rdp-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.rdp-nav_button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 1px solid #d1d5db;
+  background: white;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.rdp-nav_button:hover:not(:disabled) {
+  background-color: #f3f4f6;
+  border-color: #9ca3af;
+  color: #374151;
+}
+
+.rdp-nav_button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.rdp-nav_button_previous {
+  position: absolute;
+  left: 0.5rem;
+}
+
+.rdp-nav_button_next {
+  position: absolute;
+  right: 0.5rem;
+}
+
+.rdp-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0;
+}
+
+.rdp-head {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.rdp-head_row {
+  display: flex;
+}
+
+.rdp-head_cell {
+  flex: 1;
+  padding: 0.5rem 0;
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.rdp-tbody {
+  border: none;
+}
+
+.rdp-row {
+  display: flex;
+  margin: 0;
+}
+
+.rdp-cell {
+  flex: 1;
+  padding: 0.125rem;
+  text-align: center;
+}
+
+.rdp-button {
+  width: 2.25rem;
+  height: 2.25rem;
+  border: none;
+  background: transparent;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: #374151;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+.rdp-button:hover:not(:disabled) {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+.rdp-button:disabled {
+  color: #d1d5db;
+  cursor: not-allowed;
+}
+
+.rdp-day_today:not(.rdp-day_selected) {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+  font-weight: 600;
+}
+
+.rdp-day_selected {
+  background-color: #2563eb !important;
+  color: white !important;
+  font-weight: 600;
+}
+
+.rdp-day_selected:hover {
+  background-color: #1d4ed8 !important;
+}
+
+.rdp-day_outside {
+  color: #d1d5db;
+}
+
+.rdp-day_range_start,
+.rdp-day_range_end {
+  background-color: #2563eb;
+  color: white;
+  font-weight: 600;
+}
+
+.rdp-day_range_middle {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+}
+
+.rdp-day_range_start:not(.rdp-day_range_end) {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.rdp-day_range_end:not(.rdp-day_range_start) {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.rdp-day_range_middle {
+  border-radius: 0;
+}
+
+.date-picker-select {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  background: white;
+  font-size: 0.875rem;
+  color: #374151;
+  cursor: pointer;
+  min-width: 80px;
+  height: 32px;
+}
+
+.date-picker-select:focus {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+  border-color: #2563eb;
+}
+
+.date-picker-select:hover {
+  border-color: #9ca3af;
+}
+
+.date-picker-select > span {
+  font-size: 0.875rem;
+}

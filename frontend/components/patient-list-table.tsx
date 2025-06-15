@@ -1,6 +1,6 @@
 import React from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/doctor/components/table";
+import { Button } from "@/app/doctor/components/button";
 import { Patient } from "@/types/Patient";
 
 interface PatientListTableProps {

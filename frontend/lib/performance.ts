@@ -73,5 +73,5 @@ export const performanceMonitor = new PerformanceMonitor()
 
 // Export performance data for debugging
 if (typeof window !== 'undefined') {
-  (window as any).vaxtrackPerformance = performanceMonitor
+  (window as any).SureShotPerformance = performanceMonitor
 }

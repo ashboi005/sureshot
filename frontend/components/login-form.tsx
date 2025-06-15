@@ -1,7 +1,9 @@
 "use client"
+
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
+import { motion } from "framer-motion"
 import {
   Card,
   CardContent,
@@ -19,13 +21,26 @@ import { toast } from "sonner"
 import { useState } from "react"
 import { useAtom } from "jotai"
 import { doctorIdAtom, doctorDetailsAtom } from "@/lib/atoms"
-
+import { Loader2 } from "lucide-react"
+import { setAuthCookies } from "@/app/actions/auth"
 const formSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(8, "Password must be at least 8 characters"),
 })
 
 type FormData = z.infer<typeof formSchema>
+
+const formItemVariants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: (custom: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { 
+      delay: custom * 0.1,
+      duration: 0.3
+    }
+  })
+}
 
 export function LoginForm({
   className,
@@ -42,7 +57,7 @@ export function LoginForm({
     resolver: zodResolver(formSchema),
   })
   const router = useRouter()
-  // Function to fetch doctor ID if the user is a doctor
+  
   const fetchDoctorId = async (userId: string, token: string) => {
     try {
       const response = await axios.get(
@@ -52,23 +67,19 @@ export function LoginForm({
             Authorization: `Bearer ${token}`
           }
         }
-      );      console.log('Doctor ID response:', response.data);
+      );
+      
       if (response.data?.doctor_id) {
-        // Store in Jotai atom only
         setDoctorId(response.data.doctor_id);
-        
-        // Also store doctor details if available
+
         setDoctorDetails({
           doctorId: response.data.doctor_id,
           specialization: response.data.specialization,
           hospitalAffiliation: response.data.hospital_affiliation
         });
-        
-        console.log('Doctor ID stored in atom:', response.data.doctor_id);
       }
     } catch (error) {
       console.error('Error fetching doctor ID:', error);
-      // Non-blocking error - we continue login process but log the error
     }
   };
 
@@ -80,27 +91,17 @@ export function LoginForm({
         const accessToken = response.data.access_token;
         const userRole = response.data.user.account_type;
         const userId = response.data.user.user_id;
-        
-        // Store token in localStorage
+
         localStorage.setItem('accessToken', accessToken);
         localStorage.setItem('userRole', userRole);
-        
-        // Set cookies
-        document.cookie = `accessToken=${accessToken}; Path=/; ${
-          process.env.NODE_ENV === 'production' ? 'Secure; HttpOnly; SameSite=Strict' : ''
-        }${response.data.expires_in ? `; Max-Age=${response.data.expires_in}` : ''}`;
-        
-        document.cookie = `role=${userRole}; Path=/; ${
-          process.env.NODE_ENV === 'production' ? 'Secure; HttpOnly; SameSite=Strict' : ''
-        }${response.data.expires_in ? `; Max-Age=${response.data.expires_in}` : ''}`;
-        
-        // If user is a doctor, fetch doctor ID
+
+     setAuthCookies(accessToken, userRole);
         if (userRole === 'doctor') {
           await fetchDoctorId(userId, accessToken);
         }
-        
+
         toast.success('Login successful!');
-        router.push('/');
+        router.push('/user');
       } else {
         toast.error('Login failed. Please try again.');
       }
@@ -116,19 +117,24 @@ export function LoginForm({
     }
   }
 
-
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card>
-        <CardHeader className="text-center">
-          <CardTitle className="text-xl">Welcome back</CardTitle>
+      <Card className="bg-[#141414] border-[#333] shadow-lg">
+        <CardHeader className="text-center border-b border-[#333]">
+          <CardTitle className="text-xl text-white">Welcome back</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="grid gap-6">
               <div className="grid gap-6">
-                <div className="grid gap-3">
-                  <Label htmlFor="email">Email</Label>
+                <motion.div 
+                  custom={0}
+                  variants={formItemVariants}
+                  initial="hidden"
+                  animate="visible"
+                  className="grid gap-3"
+                >
+                  <Label htmlFor="email" className="text-gray-300">Email</Label>
                   <Input
                     id="email"
                     type="email"
@@ -136,18 +142,25 @@ export function LoginForm({
                     required
                     autoFocus
                     {...register("email")}
+                    className="bg-[#1c1c1c] border-[#333] text-white focus:border-[#8ed500] focus:ring-[#8ed500]"
                   />
                   {errors.email && (
-                    <p className="text-sm text-red-500">{errors.email.message}</p>
+                    <p className="text-sm text-red-400">{errors.email.message}</p>
                   )}
-                </div>
+                </motion.div>
 
-                <div className="grid gap-3">
+                <motion.div 
+                  custom={1}
+                  variants={formItemVariants}
+                  initial="hidden"
+                  animate="visible"
+                  className="grid gap-3"
+                >
                   <div className="flex items-center">
-                    <Label htmlFor="password">Password</Label>
+                    <Label htmlFor="password" className="text-gray-300">Password</Label>
                     <a
                       href="/auth/forgot-password"
-                      className="ml-auto text-sm underline-offset-4 hover:underline"
+                      className="ml-auto text-sm text-[#8ed500] hover:text-white transition-colors"
                     >
                       Forgot your password?
                     </a>
@@ -158,29 +171,71 @@ export function LoginForm({
                     required
                     {...register("password")}
                     placeholder="••••••••"
+                    className="bg-[#1c1c1c] border-[#333] text-white focus:border-[#8ed500] focus:ring-[#8ed500]"
                   />
                   {errors.password && (
-                    <p className="text-sm text-red-500">{errors.password.message}</p>
+                    <p className="text-sm text-red-400">{errors.password.message}</p>
                   )}
-                </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Logging in..." : "Login"}
-                </Button>
+                </motion.div>
+                
+                <motion.div
+                  custom={2}
+                  variants={formItemVariants}
+                  initial="hidden"
+                  animate="visible"
+                >
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-[#8ed500] text-[#141414] hover:bg-[#a5ec1c] transition-colors"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <div className="flex items-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>Logging in...</span>
+                      </div>
+                    ) : "Login"}
+                  </Button>
+                </motion.div>
               </div>
-              <div className="text-center text-sm">
-                Don&apos;t have an account?{" "}
-                <a href="/auth/sign-up" className="underline underline-offset-4">
+              
+              <motion.div
+                custom={3}
+                variants={formItemVariants}
+                initial="hidden"
+                animate="visible"
+                className="text-center text-sm"
+              >
+                <span className="text-gray-400">Don&apos;t have an account?</span>{" "}
+                <a 
+                  href="/auth/sign-up" 
+                  className="text-[#8ed500] hover:text-white transition-colors"
+                >
                   Sign up
                 </a>
-              </div>
+              </motion.div>
             </div>
           </form>
         </CardContent>
       </Card>
-      <div className="text-muted-foreground *:[a]:hover:text-primary text-center text-xs text-balance *:[a]:underline *:[a]:underline-offset-4">
-        By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
-        and <a href="#">Privacy Policy</a>.
-      </div>
+      
+      <motion.div
+        custom={4}
+        variants={formItemVariants}
+        initial="hidden"
+        animate="visible"
+        className="text-gray-500 text-center text-xs text-balance"
+      >
+        By clicking continue, you agree to our{" "}
+        <a href="#" className="text-gray-400 hover:text-[#8ed500] transition-colors">
+          Terms of Service
+        </a>{" "}
+        and{" "}
+        <a href="#" className="text-gray-400 hover:text-[#8ed500] transition-colors">
+          Privacy Policy
+        </a>
+        .
+      </motion.div>
     </div>
   )
 }

@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../components/ui/specialized"
-import { ArrowRight, Download, Filter, MoreHorizontal, Plus, Search, Loader2, Calendar, MapPin, Users } from "lucide-react"
+import { ArrowRight, Download, Filter, Plus, Search, Loader2, Calendar, MapPin, Users } from "lucide-react"
 import Link from "next/link"
 import { api, VaccinationDriveResponse } from "@/lib/api"
 import { useToast } from "@/hooks/use-toast"
@@ -114,8 +114,7 @@ export default function VaccinationDrivesPage() {
         </DropdownMenu>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
+      <div className="rounded-md border">        <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Drive Name</TableHead>
@@ -124,7 +123,6 @@ export default function VaccinationDrivesPage() {
               <TableHead>Workers</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Created</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -164,47 +162,46 @@ export default function VaccinationDrivesPage() {
                   </div>
                 </TableCell>
                 <TableCell>
-                  <Badge variant={drive.is_active ? "default" : "secondary"}>
-                    {drive.is_active ? "ACTIVE" : "INACTIVE"}
+                  <Badge variant={
+                    (() => {
+                      const now = new Date();
+                      const startDate = new Date(drive.start_date);
+                      const endDate = new Date(drive.end_date);
+                      
+                      if (now >= startDate && now <= endDate && drive.is_active) {
+                        return "default"; // Active - green
+                      } else if (now < startDate && drive.is_active) {
+                        return "secondary"; // Planned - gray
+                      } else if (now > endDate) {
+                        return "outline"; // Completed - outline
+                      } else {
+                        return "destructive"; // Inactive - red
+                      }
+                    })()
+                  }>
+                    {(() => {
+                      const now = new Date();
+                      const startDate = new Date(drive.start_date);
+                      const endDate = new Date(drive.end_date);
+                      
+                      if (now >= startDate && now <= endDate && drive.is_active) {
+                        return "ACTIVE";
+                      } else if (now < startDate && drive.is_active) {
+                        return "PLANNED";
+                      } else if (now > endDate) {
+                        return "COMPLETED";
+                      } else {
+                        return "INACTIVE";
+                      }
+                    })()}
                   </Badge>
-                </TableCell>
-                <TableCell>
+                </TableCell><TableCell>
                   <div className="flex items-center space-x-2">
                     <Calendar className="h-3 w-3 text-muted-foreground" />
                     <span className="text-sm">
                       {new Date(drive.created_at).toLocaleDateString()}
                     </span>
                   </div>
-                </TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem>
-                        <Link href={`/admin/drives/${drive.id}`} className="flex items-center">
-                          View Details
-                          <ArrowRight className="ml-2 h-3 w-3" />
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>Edit Drive</DropdownMenuItem>
-                      <DropdownMenuItem>Manage Workers</DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem>
-                        <Download className="mr-2 h-3 w-3" />
-                        Export Data
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem>
-                        {drive.is_active ? "Mark Inactive" : "Mark Active"}
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             ))}

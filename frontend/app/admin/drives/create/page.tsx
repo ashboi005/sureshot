@@ -8,11 +8,9 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "../../components/ui/core/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../../components/ui/forms/form"
-import { Calendar } from "../../components/ui/forms/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/overlays"
+import { DatePicker } from "../../components/ui/forms/date-picker-clean"
 import { CitySelect } from "../../components/city-select"
-import { CalendarIcon, ChevronLeft, Loader2, Users } from "lucide-react"
-import { format } from "date-fns"
+import { ChevronLeft, Loader2, Users } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useToast } from "@/hooks/use-toast"
 import { useForm } from "react-hook-form"
@@ -48,6 +46,7 @@ export default function CreateVaccinationDrivePage() {
   const router = useRouter()
   const { toast } = useToast()
   const [workers, setWorkers] = useState<WorkerResponse[]>([])
+  const [filteredWorkers, setFilteredWorkers] = useState<WorkerResponse[]>([])
   const [loadingWorkers, setLoadingWorkers] = useState(true)
   const [submitting, setSubmitting] = useState(false)
 
@@ -61,9 +60,25 @@ export default function CreateVaccinationDrivePage() {
     },
   })
 
+  const selectedCity = form.watch("vaccination_city")
+
   useEffect(() => {
     fetchWorkers()
   }, [])
+
+  useEffect(() => {
+    // Filter workers by selected city
+    if (selectedCity) {
+      const filtered = workers.filter(worker => 
+        worker.city_name && worker.city_name.toLowerCase().includes(selectedCity.toLowerCase())
+      )
+      setFilteredWorkers(filtered)
+    } else {
+      setFilteredWorkers(workers)
+    }
+    // Reset selected workers when city changes
+    form.setValue("assigned_worker_ids", [])
+  }, [selectedCity, workers, form])
 
   const fetchWorkers = async () => {
     try {
@@ -93,7 +108,9 @@ export default function CreateVaccinationDrivePage() {
           message: "End date must be after start date",
         })
         return
-      }      const driveData = {
+      }
+
+      const driveData = {
         ...values,
         start_date: values.start_date.toISOString(),
         end_date: values.end_date.toISOString(),
@@ -134,10 +151,13 @@ export default function CreateVaccinationDrivePage() {
   const selectedWorkerIds = form.watch("assigned_worker_ids")
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center space-x-4">
+    <div className="space-y-6">      <div className="flex items-center space-x-4">
         <Link href="/admin/drives">
-          <Button variant="ghost" size="sm">
+          <Button 
+            variant="ghost" 
+            size="sm"
+            className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+          >
             <ChevronLeft className="mr-2 h-4 w-4" />
             Back to Drives
           </Button>
@@ -145,49 +165,51 @@ export default function CreateVaccinationDrivePage() {
       </div>
 
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Create Vaccination Drive</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900">Create Vaccination Drive</h1>
+        <p className="text-gray-600">
           Set up a new vaccination drive and assign healthcare workers
         </p>
-      </div>
-
-      <Card className="max-w-4xl">
-        <CardHeader>
-          <CardTitle>Drive Information</CardTitle>
-          <CardDescription>
+      </div><Card className="max-w-4xl bg-white border-gray-200">
+        <CardHeader className="border-b border-gray-200">
+          <CardTitle className="text-gray-900">Drive Information</CardTitle>
+          <CardDescription className="text-gray-600">
             Provide the basic details for this vaccination drive
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">                <FormField
                   control={form.control}
                   name="vaccination_name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Drive Name</FormLabel>
+                      <FormLabel className="text-gray-900">Drive Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g. Polio Vaccination Drive - North District" {...field} />
+                        <Input 
+                          placeholder="e.g. Polio Vaccination Drive - North District" 
+                          className="bg-white border-gray-300 text-gray-900 placeholder-gray-500"
+                          {...field} 
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
-                />                <FormField
+                />
+
+                <FormField
                   control={form.control}
                   name="vaccination_city"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>City</FormLabel>
+                      <FormLabel className="text-gray-900">City</FormLabel>
                       <FormControl>
                         <CitySelect
                           value={field.value}
                           onValueChange={field.onChange}
                           placeholder="Select city"
                         />
-                      </FormControl>
-                      <FormMessage />
+                      </FormControl>                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -198,11 +220,11 @@ export default function CreateVaccinationDrivePage() {
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Description</FormLabel>
+                    <FormLabel className="text-gray-900">Description</FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder="Provide a detailed description of the vaccination drive, including target population, goals, and any special instructions..."
-                        className="min-h-[100px]"
+                        className="min-h-[100px] bg-white border-gray-300 text-gray-900 placeholder-gray-500"
                         {...field}
                       />
                     </FormControl>
@@ -211,62 +233,38 @@ export default function CreateVaccinationDrivePage() {
                 )}
               />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">                <FormField
                   control={form.control}
                   name="start_date"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel>Start Date</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant={"outline"}
-                              className={cn(
-                                "w-full pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
-                        </PopoverContent>
-                      </Popover>
+                      <FormLabel className="text-gray-900">Start Date</FormLabel>
+                      <FormControl>
+                        <DatePicker
+                          date={field.value}
+                          onDateChange={field.onChange}
+                          placeholder="Select start date"
+                          minDate={new Date()}
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
-                  )}
-                />
+                  )}                />
 
                 <FormField
                   control={form.control}
                   name="end_date"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel>End Date</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant={"outline"}
-                              className={cn(
-                                "w-full pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
-                        </PopoverContent>
-                      </Popover>
+                      <FormLabel className="text-gray-900">End Date</FormLabel>
+                      <FormControl>
+                        <DatePicker
+                          date={field.value}
+                          onDateChange={field.onChange}
+                          placeholder="Select end date"
+                          minDate={form.getValues("start_date") || new Date()}
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -276,45 +274,65 @@ export default function CreateVaccinationDrivePage() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label className="text-base font-medium">Assign Healthcare Workers</Label>
-                    <p className="text-sm text-muted-foreground">
+                    <Label className="text-base font-medium text-gray-900">Assign Healthcare Workers</Label>
+                    <p className="text-sm text-gray-600">
                       Select workers who will be responsible for this vaccination drive
+                      {selectedCity && ` in ${selectedCity}`}
                     </p>
                   </div>
-                  <Badge variant="secondary">
+                  <Badge variant="secondary" className="bg-gray-100 text-gray-800">
                     <Users className="mr-1 h-3 w-3" />
                     {selectedWorkerIds.length} selected
                   </Badge>
                 </div>
 
+                {!selectedCity && (
+                  <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <p className="text-sm text-yellow-800">
+                      Please select a city first to see available workers for that location.
+                    </p>
+                  </div>
+                )}
+
                 {loadingWorkers ? (
                   <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin" />
-                    <span className="ml-2">Loading workers...</span>
+                    <Loader2 className="h-6 w-6 animate-spin text-gray-600" />
+                    <span className="ml-2 text-gray-600">Loading workers...</span>
+                  </div>
+                ) : filteredWorkers.length === 0 && selectedCity ? (
+                  <div className="text-center py-8 text-gray-500">
+                    No workers found in {selectedCity}. You may need to add workers for this city first.
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto border rounded-lg p-4">                    {workers.map((worker) => (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto border border-gray-200 rounded-lg p-4 bg-white">
+                    {filteredWorkers.map((worker) => (
                       <div
                         key={worker.id}
                         className={cn(
                           "flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-colors",
                           selectedWorkerIds.includes(worker.id)
-                            ? "bg-primary/10 border-primary"
-                            : "bg-background hover:bg-muted"
-                        )}
+                            ? "bg-gray-900 text-white border-gray-900"
+                            : "bg-white hover:bg-gray-50 border-gray-200"                        )}
                       >
                         <Checkbox
                           checked={selectedWorkerIds.includes(worker.id)}
                           onCheckedChange={() => handleWorkerToggle(worker.id)}
+                          className={selectedWorkerIds.includes(worker.id) ? "text-white" : ""}
                         />
                         <div 
                           className="flex-1 min-w-0 cursor-pointer"
                           onClick={() => handleWorkerToggle(worker.id)}
                         >
-                          <p className="text-sm font-medium truncate">
+                          <p className={cn(
+                            "text-sm font-medium truncate",
+                            selectedWorkerIds.includes(worker.id) ? "text-white" : "text-gray-900"
+                          )}>
                             {worker.first_name} {worker.last_name}
                           </p>
-                          <p className="text-xs text-muted-foreground truncate">
+                          <p className={cn(
+                            "text-xs truncate",
+                            selectedWorkerIds.includes(worker.id) ? "text-gray-200" : "text-gray-500"
+                          )}>
                             {worker.specialization} • {worker.city_name}
                           </p>
                         </div>
@@ -331,12 +349,20 @@ export default function CreateVaccinationDrivePage() {
               </div>
 
               <div className="flex items-center space-x-4">
-                <Button type="submit" disabled={submitting}>
+                <Button 
+                  type="submit" 
+                  disabled={submitting}
+                  className="bg-gray-900 hover:bg-gray-800 text-white"
+                >
                   {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   {submitting ? "Creating Drive..." : "Create Vaccination Drive"}
                 </Button>
                 <Link href="/admin/drives">
-                  <Button variant="outline" type="button">
+                  <Button 
+                    variant="outline" 
+                    type="button"
+                    className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                  >
                     Cancel
                   </Button>
                 </Link>

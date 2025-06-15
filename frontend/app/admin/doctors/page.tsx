@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "../components/ui/specialized/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/display/avatar"
-import { Filter, MoreHorizontal, Phone, Plus, Search, Stethoscope, MapPin, Calendar, Loader2 } from "lucide-react"
+import { Filter, Phone, Plus, Search, Stethoscope, MapPin, Calendar, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { api, DoctorResponse } from "@/lib/api"
 import { useToast } from "@/hooks/use-toast"
@@ -130,7 +130,6 @@ export default function DoctorsPage() {
               <TableHead>Hospital</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Contact</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -138,15 +137,13 @@ export default function DoctorsPage() {
               <TableRow key={doctor.id}>
                 <TableCell>
                   <div className="flex items-center space-x-3">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src="/placeholder-user.jpg" />
+                    <Avatar className="h-8 w-8">                      <AvatarImage src="/placeholder-user.jpg" />
                       <AvatarFallback>
-                        {doctor.first_name[0]}{doctor.last_name[0]}
+                        {doctor.first_name?.[0] || 'D'}{doctor.last_name?.[0] || 'R'}
                       </AvatarFallback>
                     </Avatar>
-                    <div>
-                      <div className="font-medium">
-                        Dr. {doctor.first_name} {doctor.last_name}
+                    <div>                      <div className="font-medium">
+                        Dr. {doctor.first_name || ''} {doctor.last_name || ''}
                       </div>
                       <div className="text-sm text-muted-foreground">
                         {doctor.username}
@@ -187,26 +184,6 @@ export default function DoctorsPage() {
                       </span>
                     </div>
                   </div>
-                </TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem>View Details</DropdownMenuItem>
-                      <DropdownMenuItem>Edit Information</DropdownMenuItem>
-                      <DropdownMenuItem>View Schedule</DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem>
-                        {doctor.is_active ? "Mark Inactive" : "Mark Active"}
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             ))}

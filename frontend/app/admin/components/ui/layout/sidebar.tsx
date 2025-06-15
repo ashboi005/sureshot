@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "../core/button"
 import { Input } from "../core/input"
 import { Separator } from "../core/separator"
-import { Sheet, SheetContent } from "../overlays/sheet"
+import { Sheet, SheetContent, SheetTitle } from "../overlays/sheet"
 import { Skeleton } from "../display/skeleton"
 import {
   Tooltip,
@@ -194,8 +194,7 @@ const Sidebar = React.forwardRef<
 
     if (isMobile) {
       return (
-        <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
-          <SheetContent
+        <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>          <SheetContent
             data-sidebar="sidebar"
             data-mobile="true"
             className="w-[--sidebar-width] bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
@@ -206,6 +205,7 @@ const Sidebar = React.forwardRef<
             }
             side={side}
           >
+            <SheetTitle className="sr-only">Sidebar</SheetTitle>
             <div className="flex h-full w-full flex-col">{children}</div>
           </SheetContent>
         </Sheet>

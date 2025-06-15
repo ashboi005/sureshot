@@ -1,67 +1,58 @@
+"use client"
+
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/display/avatar"
 import { Badge } from "../ui/core/badge"
-import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/data/table"
-import { MoreHorizontal, Phone } from "lucide-react"
-
-const workers = [
-  {
-    id: "1",
-    name: "Sophia Chen",
-    initials: "SC",
-    image: "/placeholder.svg?height=40&width=40",
-    employeeId: "HW-2023-001",
-    phone: "+1234567890",
-    assignedArea: "Sector A",
-    status: "ACTIVE",
-    vaccinations: 42,
-  },
-  {
-    id: "2",
-    name: "Raj Patel",
-    initials: "RP",
-    image: "/placeholder.svg?height=40&width=40",
-    employeeId: "HW-2023-008",
-    phone: "+1234567891",
-    assignedArea: "Sector B",
-    status: "ACTIVE",
-    vaccinations: 38,
-  },
-  {
-    id: "3",
-    name: "Maria Rodriguez",
-    initials: "MR",
-    image: "/placeholder.svg?height=40&width=40",
-    employeeId: "HW-2023-015",
-    phone: "+1234567892",
-    assignedArea: "Sector C",
-    status: "ACTIVE",
-    vaccinations: 29,
-  },
-  {
-    id: "4",
-    name: "John Smith",
-    initials: "JS",
-    image: "/placeholder.svg?height=40&width=40",
-    employeeId: "HW-2023-022",
-    phone: "+1234567893",
-    assignedArea: "Sector A",
-    status: "INACTIVE",
-    vaccinations: 0,
-  },
-]
+import { Phone, Loader2 } from "lucide-react"
+import { useEffect, useState } from "react"
+import { api, WorkerResponse } from "@/lib/api"
 
 export function DriveWorkersList() {
+  const [workers, setWorkers] = useState<WorkerResponse[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchWorkers()
+  }, [])
+  const fetchWorkers = async () => {
+    try {
+      setLoading(true)
+      const response = await api.getWorkers(0, 5) // Get first 5 workers for dashboard
+      setWorkers(response.workers || [])
+    } catch (error) {
+      console.error('Error fetching workers:', error)
+      setWorkers([]) // Set to empty array on error
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="h-6 w-6 animate-spin text-gray-600" />
+        <span className="ml-2 text-gray-600">Loading workers...</span>
+      </div>
+    )
+  }
+
+  if (workers.length === 0) {
+    return (
+      <div className="text-center py-8 text-gray-500">
+        No workers found.
+      </div>
+    )
+  }
+
   return (
     <Table>
       <TableHeader>
         <TableRow>
           <TableHead>Worker</TableHead>
-          <TableHead>Employee ID</TableHead>
-          <TableHead>Assigned Area</TableHead>
+          <TableHead>Specialization</TableHead>
+          <TableHead>City</TableHead>
           <TableHead>Status</TableHead>
-          <TableHead>Vaccinations</TableHead>
-          <TableHead className="text-right">Actions</TableHead>
+          <TableHead>Experience</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -70,30 +61,26 @@ export function DriveWorkersList() {
             <TableCell>
               <div className="flex items-center gap-3">
                 <Avatar>
-                  <AvatarImage src={worker.image || "/placeholder.svg"} alt={worker.name} />
-                  <AvatarFallback>{worker.initials}</AvatarFallback>
+                  <AvatarImage src="/placeholder.svg" alt={`${worker.first_name} ${worker.last_name}`} />
+                  <AvatarFallback>{worker.first_name?.[0] || 'W'}{worker.last_name?.[0] || 'R'}</AvatarFallback>
                 </Avatar>
                 <div>
-                  <div className="font-medium">{worker.name}</div>
+                  <div className="font-medium">{worker.first_name} {worker.last_name}</div>
                   <div className="text-sm text-muted-foreground flex items-center">
                     <Phone className="h-3 w-3 mr-1" />
-                    {worker.phone}
+                    {worker.email}
                   </div>
                 </div>
               </div>
             </TableCell>
-            <TableCell>{worker.employeeId}</TableCell>
-            <TableCell>{worker.assignedArea}</TableCell>
+            <TableCell>{worker.specialization}</TableCell>
+            <TableCell>{worker.city_name}</TableCell>
             <TableCell>
-              <Badge variant={worker.status === "ACTIVE" ? "default" : "outline"}>{worker.status}</Badge>
+              <Badge variant={worker.is_active ? "default" : "outline"}>
+                {worker.is_active ? "ACTIVE" : "INACTIVE"}
+              </Badge>
             </TableCell>
-            <TableCell>{worker.vaccinations}</TableCell>
-            <TableCell className="text-right">
-              <Button variant="ghost" size="sm">
-                <MoreHorizontal className="h-4 w-4" />
-                <span className="sr-only">Actions</span>
-              </Button>
-            </TableCell>
+            <TableCell>{worker.experience_years} years</TableCell>
           </TableRow>
         ))}
       </TableBody>
