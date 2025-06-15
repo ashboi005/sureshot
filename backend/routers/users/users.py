@@ -28,6 +28,16 @@ async def create_vaccination_records_for_baby(db: AsyncSession, user_id: uuid.UU
     Also creates reminder records for each vaccination
     """
     try:
+        # Check if vaccination records already exist for this user
+        existing_records_result = await db.execute(
+            select(VaccinationRecord).where(VaccinationRecord.user_id == user_id)
+        )
+        existing_records = existing_records_result.scalars().all()
+        
+        if existing_records:
+            logger.info(f"Vaccination records already exist for user {user_id}, skipping creation")
+            return len(existing_records)
+        
         # Get all vaccine templates with their relationships
         templates_result = await db.execute(
             select(VaccineTemplate).options(selectinload(VaccineTemplate.vaccination_records))
@@ -231,12 +241,26 @@ async def update_current_user_profile(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="User profile not found"
             )
+          # Check if baby_date_of_birth is being added for the first time
+        was_baby_birth_date_null = profile.baby_date_of_birth is None
+        new_baby_birth_date = profile_update.baby_date_of_birth
         
         update_data = profile_update.model_dump(exclude_unset=True)
         for field, value in update_data.items():
             setattr(profile, field, value)
         
         profile.updated_at = datetime.utcnow()
+        
+        # If baby_date_of_birth is being added for the first time, create vaccination records
+        if was_baby_birth_date_null and new_baby_birth_date is not None:
+            try:
+                vaccination_count = await create_vaccination_records_for_baby(
+                    db, profile.user_id, new_baby_birth_date
+                )
+                logger.info(f"Created {vaccination_count} vaccination records for baby {profile.baby_name or 'Unknown'} during profile update")
+            except Exception as vaccine_error:
+                logger.error(f"Failed to create vaccination records during profile update: {str(vaccine_error)}")
+                # Don't fail the profile update if vaccination records fail
         
         # If baby name is updated, update display_name in auth table
         if profile_update.baby_name:
