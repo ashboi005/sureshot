@@ -19,7 +19,7 @@ import { toast } from "sonner"
 import { useState } from "react"
 import { useAtom } from "jotai"
 import { doctorIdAtom, doctorDetailsAtom } from "@/lib/atoms"
-
+import { setAuthCookies } from "@/app/actions/auth"
 const formSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(8, "Password must be at least 8 characters"),
@@ -51,16 +51,16 @@ export function LoginForm({
             Authorization: `Bearer ${token}`
           }
         }
-      );      console.log('Doctor ID response:', response.data);
+      ); console.log('Doctor ID response:', response.data);
       if (response.data?.doctor_id) {
         setDoctorId(response.data.doctor_id);
-        
+
         setDoctorDetails({
           doctorId: response.data.doctor_id,
           specialization: response.data.specialization,
           hospitalAffiliation: response.data.hospital_affiliation
         });
-        
+
         console.log('Doctor ID stored in atom:', response.data.doctor_id);
       }
     } catch (error) {
@@ -76,22 +76,15 @@ export function LoginForm({
         const accessToken = response.data.access_token;
         const userRole = response.data.user.account_type;
         const userId = response.data.user.user_id;
-        
+
         localStorage.setItem('accessToken', accessToken);
         localStorage.setItem('userRole', userRole);
-        
-        document.cookie = `accessToken=${accessToken}; Path=/; ${
-          process.env.NODE_ENV === 'production' ? 'Secure; HttpOnly; SameSite=Strict' : ''
-        }${response.data.expires_in ? `; Max-Age=${response.data.expires_in}` : ''}`;
-        
-        document.cookie = `role=${userRole}; Path=/; ${
-          process.env.NODE_ENV === 'production' ? 'Secure; HttpOnly; SameSite=Strict' : ''
-        }${response.data.expires_in ? `; Max-Age=${response.data.expires_in}` : ''}`;
-        
+
+     setAuthCookies(accessToken, userRole);
         if (userRole === 'doctor') {
           await fetchDoctorId(userId, accessToken);
         }
-        
+
         toast.success('Login successful!');
         router.push('/user');
       } else {
