@@ -1,7 +1,12 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Toaster } from "@/components/ui/sonner"
+import { Toaster } from "@/components/ui/sonner";
+import { PwaInstallButtonWrapper } from "@/components/pwa-install-button-wrapper";
+
+// Import the PWA install handler script (will be executed on client-side only due to 'use client' directive)
+import '../lib/pwa-install-handler';
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -24,11 +29,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
+    <html lang="en">      <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
+      >        {children}
+        <div className="fixed bottom-6 right-6 z-50">
+          <PwaInstallButtonWrapper />
+        </div>
         <link rel="manifest" href="/manifest.json" />
         <Toaster/>
       </body>
