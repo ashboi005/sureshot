@@ -62,6 +62,7 @@ import {
 
 export const schema = z.object({
   id: z.string(),
+  vaccine_template_id: z.string(),
   vaccine_name: z.string(),
   dose_number: z.number(),
   due_date: z.string(),
@@ -217,7 +218,7 @@ export function VaccinationScheduleTable({ userId }: VaccinationScheduleTablePro
           variant="outline" 
           size="sm"
           onClick={() => generateQRCode(
-            row.original.id,
+            row.original.vaccine_template_id,
             row.original.vaccine_name,
             row.original.dose_number
           )}
@@ -238,6 +239,7 @@ export function VaccinationScheduleTable({ userId }: VaccinationScheduleTablePro
           },
         }
       )
+      console.log("Vaccination schedule fetched:", response.data)
       setData(response.data)
     } catch (error) {
       console.error("Error fetching vaccination schedule:", error)
