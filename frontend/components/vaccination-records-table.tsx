@@ -25,6 +25,7 @@ import {
   IconChevronDown,
   IconChevronLeft,
   IconChevronRight,
+  IconDownload,
   IconGripVertical,
   IconLayoutColumns,
   IconLoader,
@@ -145,9 +146,9 @@ interface VaccinationHistoryTableProps {
 }
 
 export function VaccinationHistoryTable({ userId }: VaccinationHistoryTableProps) {
-
   const [data, setData] = React.useState<z.infer<typeof schema>[]>([])
   const [loading, setLoading] = React.useState(true)
+
   const fetchVaccinationHistory = async () => {
     try {
       const response = await axios.get(
@@ -199,6 +200,48 @@ export function VaccinationHistoryTable({ userId }: VaccinationHistoryTableProps
     }
   }
 
+  const handleDownloadCSV = () => {
+    if (data.length === 0) {
+      toast.warning("No data to download")
+      return
+    }
+
+    // Create CSV headers
+    const headers = [
+      "Vaccine Name",
+      "Dose Number",
+      "Date Administered",
+      "Disease Prevented",
+      "Notes"
+    ]
+
+    // Create CSV rows
+    const rows = data.map(item => [
+      `"${item.vaccine_name}"`,
+      item.dose_number,
+      `"${new Date(item.administered_date).toLocaleDateString()}"`,
+      `"${item.disease_prevented}"`,
+      `"${item.notes}"`
+    ])
+
+    // Combine headers and rows
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(row => row.join(","))
+    ].join("\n")
+
+    // Create download link
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.setAttribute("href", url)
+    link.setAttribute("download", `vaccination_history_${new Date().toISOString().split('T')[0]}.csv`)
+    link.style.visibility = "hidden"
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -212,27 +255,33 @@ export function VaccinationHistoryTable({ userId }: VaccinationHistoryTableProps
     <div className="w-full">
       <div className="flex items-center justify-between p-4">
         <h2 className="text-lg font-semibold">Vaccination History</h2>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm">
-              <IconLayoutColumns className="mr-2 h-4 w-4" />
-              Columns
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {table.getAllColumns()
-              .filter((column) => column.getCanHide())
-              .map((column) => (
-                <DropdownMenuCheckboxItem
-                  key={column.id}
-                  checked={column.getIsVisible()}
-                  onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                >
-                  {column.id}
-                </DropdownMenuCheckboxItem>
-              ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={handleDownloadCSV}>
+            <IconDownload className="mr-2 h-4 w-4" />
+            Download CSV
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <IconLayoutColumns className="mr-2 h-4 w-4" />
+                Columns
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {table.getAllColumns()
+                .filter((column) => column.getCanHide())
+                .map((column) => (
+                  <DropdownMenuCheckboxItem
+                    key={column.id}
+                    checked={column.getIsVisible()}
+                    onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                  >
+                    {column.id}
+                  </DropdownMenuCheckboxItem>
+                ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       <div className="rounded-md border">

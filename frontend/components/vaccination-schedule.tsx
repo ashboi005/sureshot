@@ -13,6 +13,7 @@ import {
   type DragEndEvent,
   type UniqueIdentifier,
 } from "@dnd-kit/core"
+
 import QRCode from "qrcode"
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers"
 import {
@@ -26,6 +27,7 @@ import {
   IconGripVertical,
   IconLayoutColumns,
   IconLoader,
+  IconDownload
 } from "@tabler/icons-react"
 import {
   ColumnDef,
@@ -128,7 +130,49 @@ export function VaccinationScheduleTable({ userId }: VaccinationScheduleTablePro
   } | null>(null)
   const [data, setData] = React.useState<VaccinationSchedule[]>([])
   const [loading, setLoading] = React.useState(true)
+const handleDownloadCSV = () => {
+  if (data.length === 0) {
+    toast.warning("No data to download")
+    return
+  }
 
+  // Create CSV headers
+  const headers = [
+    "Vaccine Name",
+    "Dose Number",
+    "Due Date",
+    "Disease Prevented",
+    "Notes",
+    "Status"
+  ]
+
+  // Create CSV rows
+  const rows = data.map(item => [
+    `"${item.vaccine_name}"`,
+    item.dose_number,
+    `"${new Date(item.due_date).toLocaleDateString()}"`,
+    `"${item.disease_prevented}"`,
+    `"${item.notes || "N/A"}"`,
+    item.is_administered ? "Vaccinated" : "Pending"
+  ])
+
+  // Combine headers and rows
+  const csvContent = [
+    headers.join(","),
+    ...rows.map(row => row.join(","))
+  ].join("\n")
+
+  // Create download link
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement("a")
+  link.setAttribute("href", url)
+  link.setAttribute("download", `vaccination_schedule_${new Date().toISOString().split('T')[0]}.csv`)
+  link.style.visibility = "hidden"
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+}
   const generateQRCode = async (id: string, vaccine_name: string, dose_number: number) => {
     setCurrentVaccine({ id, vaccine_name, dose_number })
     
@@ -292,30 +336,36 @@ export function VaccinationScheduleTable({ userId }: VaccinationScheduleTablePro
 
   return (
     <div className="w-full">
-      <div className="flex items-center justify-between p-4">
-        <h2 className="text-lg font-semibold">Vaccination Schedule</h2>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm">
-              <IconLayoutColumns className="mr-2 h-4 w-4" />
-              Columns
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {table.getAllColumns()
-              .filter((column) => column.getCanHide())
-              .map((column) => (
-                <DropdownMenuCheckboxItem
-                  key={column.id}
-                  checked={column.getIsVisible()}
-                  onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                >
-                  {column.columnDef.header as string}
-                </DropdownMenuCheckboxItem>
-              ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+     <div className="flex items-center justify-between p-4">
+  <h2 className="text-lg font-semibold">Vaccination Schedule</h2>
+  <div className="flex gap-2">
+    <Button variant="outline" size="sm" onClick={handleDownloadCSV}>
+      <IconDownload className="mr-2 h-4 w-4" />
+      Download CSV
+    </Button>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="sm">
+          <IconLayoutColumns className="mr-2 h-4 w-4" />
+          Columns
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        {table.getAllColumns()
+          .filter((column) => column.getCanHide())
+          .map((column) => (
+            <DropdownMenuCheckboxItem
+              key={column.id}
+              checked={column.getIsVisible()}
+              onCheckedChange={(value) => column.toggleVisibility(!!value)}
+            >
+              {column.columnDef.header as string}
+            </DropdownMenuCheckboxItem>
+          ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  </div>
+</div>
 
       <div className="rounded-md border">
         <DndContext
