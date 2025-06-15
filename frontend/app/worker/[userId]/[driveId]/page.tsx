@@ -1,19 +1,14 @@
 "use client"
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { Loader2 } from "lucide-react";
 
-interface PageProps {
-  params: {
-    userId: string;
-    driveId: string;
-  };
-}
-
-export default function WorkerQRRedirectPage({ params }: PageProps) {
+export default function WorkerQRRedirectPage() {
   const router = useRouter();
-  const { userId, driveId } = params;
+  const params = useParams();
+  const userId = params.userId as string;
+  const driveId = params.driveId as string;
   
   useEffect(() => {
     // Redirect to the worker dashboard with QR parameters
