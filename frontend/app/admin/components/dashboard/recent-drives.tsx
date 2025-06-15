@@ -3,7 +3,7 @@
 import { Badge } from "../ui/core/badge"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/data/table"
-import { ArrowRight, Loader2 } from "lucide-react"
+import { Loader2 } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { api, VaccinationDriveResponse } from "@/lib/api"
@@ -12,7 +12,6 @@ import { format } from "date-fns"
 export function RecentDrives() {
   const [drives, setDrives] = useState<VaccinationDriveResponse[]>([])
   const [loading, setLoading] = useState(true)
-
   useEffect(() => {
     fetchRecentDrives()
   }, [])
@@ -20,10 +19,11 @@ export function RecentDrives() {
   const fetchRecentDrives = async () => {
     try {
       setLoading(true)
-      const response = await api.getVaccinationDrives(0, 5, undefined, true) // Get recent 5 active drives
-      setDrives(response.drives)
+      const response = await api.getVaccinationDrives(0, 5, undefined, false) // Get recent 5 drives, all statuses
+      setDrives(response.drives || [])
     } catch (error) {
       console.error('Error fetching recent drives:', error)
+      setDrives([]) // Set to empty array on error
     } finally {
       setLoading(false)
     }
@@ -59,7 +59,6 @@ export function RecentDrives() {
       </div>
     )
   }
-
   return (
     <div className="bg-white rounded-lg border border-gray-200">
       <Table>
@@ -71,7 +70,6 @@ export function RecentDrives() {
             <TableHead className="text-gray-700">End Date</TableHead>
             <TableHead className="text-gray-700">Status</TableHead>
             <TableHead className="text-gray-700">Workers</TableHead>
-            <TableHead className="text-right text-gray-700">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -92,17 +90,6 @@ export function RecentDrives() {
               </TableCell>
               <TableCell className="text-gray-600">
                 {drive.assigned_workers?.length || 0}
-              </TableCell>
-              <TableCell className="text-right">
-                <Link href={`/admin/drives/${drive.id}`}>
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                  >
-                    View <ArrowRight className="ml-1 h-3 w-3" />
-                  </Button>
-                </Link>
               </TableCell>
             </TableRow>
           ))}

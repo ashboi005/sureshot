@@ -15,7 +15,7 @@ import {
 } from "../components/ui/specialized"
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/display"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/forms"
-import { Filter, MoreHorizontal, Phone, Plus, Search, Loader2, Download, Edit, Trash2 } from "lucide-react"
+import { Filter, Phone, Plus, Search, Loader2, Download } from "lucide-react"
 import Link from "next/link"
 import { api, type WorkerResponse } from "@/lib/api"
 import { useToast } from "@/hooks/use-toast"
@@ -138,7 +138,6 @@ export default function WorkersPage() {
                 <TableHead>Specialization</TableHead>
                 <TableHead>Experience</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -149,9 +148,8 @@ export default function WorkersPage() {
                     <TableCell>
                       <div className="flex items-center space-x-3">
                         <Avatar>
-                          <AvatarImage src="" />
-                          <AvatarFallback>
-                            {worker.first_name[0]}{worker.last_name[0]}
+                          <AvatarImage src="" />                          <AvatarFallback>
+                            {worker.first_name?.[0] || 'W'}{worker.last_name?.[0] || 'R'}
                           </AvatarFallback>
                         </Avatar>
                         <div>
@@ -189,39 +187,6 @@ export default function WorkersPage() {
                       <Badge variant={worker.is_active ? "default" : "secondary"}>
                         {worker.is_active ? "Active" : "Inactive"}
                       </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem>
-                            <Edit className="h-4 w-4 mr-2" />
-                            Edit Details
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            View Profile
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            Contact Worker
-                          </DropdownMenuItem>
-                          {worker.government_id_url && (
-                            <DropdownMenuItem>
-                              <Download className="h-4 w-4 mr-2" />
-                              Download ID
-                            </DropdownMenuItem>
-                          )}
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-red-600">
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Deactivate
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 )

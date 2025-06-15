@@ -7,7 +7,7 @@ import { MobileNav } from "./components/navigation/mobile-nav"
 import { Toaster } from "./components/ui/feedback"
 
 export const metadata: Metadata = {
-  title: "Vaccination Management System - Admin Portal",
+  title: "SureShot - Admin Portal",
   description: "Admin portal for managing vaccination drives and healthcare workers",
   manifest: "/manifest.json",
     generator: 'v0.dev'

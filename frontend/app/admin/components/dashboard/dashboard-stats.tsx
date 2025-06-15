@@ -3,7 +3,7 @@
 import { Activity, CheckCircle, Clock, Users, Stethoscope } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/display/card"
 import { useEffect, useState } from "react"
-import { api } from "@/lib/api"
+import { adminApi, AdminDashboardStats } from "../../lib/admin-api"
 
 interface DashboardStatsData {
   active_drives: number;
@@ -14,7 +14,7 @@ interface DashboardStatsData {
 }
 
 export function DashboardStats() {
-  const [stats, setStats] = useState<DashboardStatsData>({
+  const [stats, setStats] = useState<AdminDashboardStats>({
     active_drives: 0,
     vaccinations_completed: 0,
     active_workers: 0,
@@ -30,7 +30,7 @@ export function DashboardStats() {
   const fetchStats = async () => {
     try {
       setLoading(true)
-      const data = await api.getDashboardStats()
+      const data = await adminApi.getDashboardStats()
       setStats(data)
     } catch (error) {
       console.error('Error fetching dashboard stats:', error)

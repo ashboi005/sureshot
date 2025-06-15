@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { AdminSidebar } from "./admin-sidebar"
-import { Sheet, SheetContent, SheetTrigger } from "../ui/overlays/sheet"
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "../ui/overlays/sheet"
 
 export function MobileNav() {
   const [open, setOpen] = useState(false)
@@ -23,6 +23,7 @@ export function MobileNav() {
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="p-0 w-64">
+          <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
           <AdminSidebar />
         </SheetContent>
       </Sheet>

@@ -54,11 +54,10 @@ export function AdminSidebar() {
   ]
 
   return (
-    <div className="flex h-screen w-full flex-col bg-white border-r border-gray-200 overflow-y-auto">
-      {/* Header */}
+    <div className="flex h-screen w-full flex-col bg-white border-r border-gray-200 overflow-y-auto">      {/* Header */}
       <div className="flex items-center gap-2 p-4 border-b border-gray-200 shrink-0">
         <Shield className="h-6 w-6 text-gray-900" />
-        <div className="font-semibold text-lg text-gray-900">VacMS Admin</div>
+        <div className="font-semibold text-lg text-gray-900">SureShot Admin</div>
       </div>
 
       {/* Navigation */}
@@ -81,17 +80,15 @@ export function AdminSidebar() {
             </Link>
           )
         })}
-      </nav>
-
-      {/* Footer */}
+      </nav>      {/* Footer */}
       <div className="flex items-center justify-end p-4 border-t border-gray-200 shrink-0">
         <Button 
           variant="ghost" 
-          size="icon"
           onClick={handleLogout}
-          className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+          className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 flex items-center gap-2"
         >
           <LogOut className="h-4 w-4" />
+          <span>Logout</span>
         </Button>
       </div>
     </div>
