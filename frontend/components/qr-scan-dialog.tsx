@@ -370,7 +370,7 @@ export function QRScanDialog({ open, onOpenChange, onScanComplete }: QRScanDialo
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select camera" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className='text-black'>
                           {cameras.map(camera => (
                             <SelectItem key={camera.id} value={camera.id}>
                               {camera.label}
