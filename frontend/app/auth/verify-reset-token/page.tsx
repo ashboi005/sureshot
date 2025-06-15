@@ -10,7 +10,6 @@ const page = () => {
 
         const hash = window.location.hash.substring(1)
         const params = new URLSearchParams(hash)
-        console.log('params', params)
         return {
             accessToken: params.get('access_token'),
             refreshToken: params.get('refresh_token'),
@@ -20,7 +19,6 @@ const page = () => {
     }
     const verifyResetToken=async()=>{
         const tokenData = parseTokenFromHash()
-        console.log('tokenData', tokenData)
         if (!tokenData || !tokenData.accessToken) {
             console.error('No access token found in URL hash')
             return
@@ -47,7 +45,6 @@ toast.success('Password reset token verified successfully')
             }
 
 
-            console.log('Verification response:', response.data)
         } catch (error) {
             console.error('Error verifying reset token:', error)
         }

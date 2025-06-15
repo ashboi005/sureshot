@@ -148,10 +148,8 @@ export function VaccinationHistoryTable({ userId }: VaccinationHistoryTableProps
 
   const [data, setData] = React.useState<z.infer<typeof schema>[]>([])
   const [loading, setLoading] = React.useState(true)
-
   const fetchVaccinationHistory = async () => {
     try {
-      console.log( `${process.env.NEXT_PUBLIC_API_URL}/vaccination/history/${userId}`)
       const response = await axios.get(
         `${process.env.NEXT_PUBLIC_API_URL}/vaccination/history/${userId}`,
         {

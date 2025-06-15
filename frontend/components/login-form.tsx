@@ -43,7 +43,6 @@ export function LoginForm({
     setIsLoading(true)
     try {
       const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, data)
-      console.log('Login response:', response.data)
       if (response.data?.access_token) {
         localStorage.setItem('accessToken', response.data.access_token)
         toast.success('Login successful!')

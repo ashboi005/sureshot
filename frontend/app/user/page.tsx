@@ -18,13 +18,14 @@ import { Loader2 } from "lucide-react"
 export default function DashboardPage() {
   const [vaccinationHistory, setVaccinationHistory] = useState<VaccineRecord[]>([])
   const [vaccinationDrives, setVaccinationDrives] = useState<VaccinationDrive[]>([])
-  const { user, error } = useUser();
   const [loading, setLoading] = useState(true)
+  const { user, error } = useUser();
   useEffect(() => {
 
 
     const fetchVaccinationHistory = async (userId: string) => {
       try {
+        console.log("Fetching vaccination history for user ID:", userId)
         const response = await axios.get(
           `${process.env.NEXT_PUBLIC_API_URL}/vaccination/history/${userId}`,
           {
@@ -49,7 +50,6 @@ export default function DashboardPage() {
             },
           }
         )
-        console.log("Vaccination Drives:", response)
         setVaccinationDrives(response.data.drives)
       } catch (error) {
         console.error("Error fetching vaccination drives:", error)
@@ -58,8 +58,7 @@ export default function DashboardPage() {
 
     fetchVaccinationDrives()
     fetchVaccinationHistory(user?.user_id || "")
-  }, [])
-  console.log("User Id", user)
+  }, [user])
   return (
     <div className="min-h-screen bg-gray-50/50">
       <Navbar user={user} />
