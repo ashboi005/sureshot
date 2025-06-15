@@ -20,9 +20,6 @@ import { useRouter, useParams } from 'next/navigation';
 import { workerApi } from "@/services/worker";
 import { VaccinationDrive } from "@/types/VaccinationDrives";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-
-// Animation variants
 const pageVariants = {
   hidden: { opacity: 0 },
   visible: { 
@@ -39,7 +36,6 @@ const itemVariants = {
     opacity: 1, 
     y: 0,
     transition: {
-      type: "spring" as const,
       stiffness: 100,
       damping: 12
     }
