@@ -192,7 +192,7 @@ export function VaccinationScheduleTable({ userId }: VaccinationScheduleTablePro
       pdf.setFont("helvetica", "bold");
       pdf.setFontSize(18);
       pdf.setTextColor(0, 128, 0); // Green color for title
-      pdf.text("VaxTrack - Vaccination Schedule", 20, 20);
+      pdf.text("SureShot - Vaccination Schedule", 20, 20);
       
       // Add logo placeholder
       pdf.setDrawColor(0, 128, 0);
@@ -305,7 +305,7 @@ export function VaccinationScheduleTable({ userId }: VaccinationScheduleTablePro
         pdf.setPage(i);
         pdf.setFontSize(8);
         pdf.setTextColor(150, 150, 150);
-        pdf.text(`VaxTrack - Page ${i} of ${pageCount}`, pdf.internal.pageSize.width / 2, 290, { align: 'center' });
+        pdf.text(`SureShot - Page ${i} of ${pageCount}`, pdf.internal.pageSize.width / 2, 290, { align: 'center' });
       }
       
       // Save the PDF
