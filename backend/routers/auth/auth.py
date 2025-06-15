@@ -262,7 +262,7 @@ async def forgot_password(
         from config import ENVIRONMENT
         
         if ENVIRONMENT == "prod":
-            redirect_url = "http://localhost:3000/auth/login"
+            redirect_url = "https://sureshot-tutedude.vercel.app/auth/login"
         elif ENVIRONMENT == "dev":
             redirect_url = "http://localhost:8000/verify-reset-token"
         else:

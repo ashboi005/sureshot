@@ -55,13 +55,13 @@ async def send_vaccination_confirmation(
         
         # Send Email Notification
         if user.email:
-            email_subject = f"Vaccination Completed - {baby_name} - VaxTrack"
+            email_subject = f"Vaccination Completed - {baby_name} - SureShot"
             
             email_html = f"""
             <html>
                 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
                     <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-                        <h2 style="color: #28a745;">VaxTrack - Vaccination Completed ✓</h2>
+                        <h2 style="color: #28a745;">SureShot - Vaccination Completed ✓</h2>
                         
                         <p>Dear {parent_name},</p>
                         
@@ -83,14 +83,14 @@ async def send_vaccination_confirmation(
                             </ul>
                         </div>
                         
-                        <p>This vaccination has been recorded in {baby_name}'s vaccination history. You can view the complete vaccination record anytime through your VaxTrack account.</p>
+                        <p>This vaccination has been recorded in {baby_name}'s vaccination history. You can view the complete vaccination record anytime through your SureShot account.</p>
                         
                         <p>Thank you for keeping {baby_name}'s vaccinations up to date and protecting their health!</p>
                         
                         <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
                         
                         <p style="font-size: 12px; color: #666;">
-                            This is an automated message from VaxTrack. Please do not reply to this email.
+                            This is an automated message from SureShot. Please do not reply to this email.
                             <br>For questions, please contact your healthcare provider.
                         </p>
                     </div>
@@ -110,7 +110,7 @@ async def send_vaccination_confirmation(
                 f"Great news {parent_name}! {baby_name} has successfully received "
                 f"{vaccination_name} {dose_info} vaccination on {vaccination_date}. "
                 f"Monitor for mild side effects and keep them comfortable. "
-                f"Thank you for keeping their vaccinations up to date! - VaxTrack"
+                f"Thank you for keeping their vaccinations up to date! - SureShot"
             )
             
             sms_sent = twilio_service.send_sms(profile.parent_mobile, sms_message)

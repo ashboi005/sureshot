@@ -315,11 +315,11 @@ export function QRScanDialog({ open, onOpenChange, onScanComplete }: QRScanDialo
                   #qr-scanner-container div:has(select) {
                     margin-bottom: 10px !important;
                   }
-                  
-                  #qr-scanner-container select {
+                    #qr-scanner-container select {
                     border-radius: 4px !important;
                     padding: 4px 8px !important;
                     font-size: 14px !important;
+                    color: black !important;
                   }
                 `}</style>
                 
@@ -357,22 +357,21 @@ export function QRScanDialog({ open, onOpenChange, onScanComplete }: QRScanDialo
                 
                 <div className="w-full space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="camera-select">Select Camera</Label>
+                    <Label htmlFor="camera-select" className="text-black">Select Camera</Label>
                     {cameraLoading ? (
                       <div className="h-10 flex items-center justify-center">
                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
                       </div>
-                    ) : cameras.length > 0 ? (
-                      <Select
+                    ) : cameras.length > 0 ? (                      <Select
                         value={selectedCamera}
                         onValueChange={setSelectedCamera}
                       >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select camera" />
+                        <SelectTrigger className="w-full text-black">
+                          <SelectValue placeholder="Select camera" className="text-black" />
                         </SelectTrigger>
                         <SelectContent className='text-black'>
                           {cameras.map(camera => (
-                            <SelectItem key={camera.id} value={camera.id}>
+                            <SelectItem key={camera.id} value={camera.id} className="text-black">
                               {camera.label}
                             </SelectItem>
                           ))}
@@ -411,7 +410,7 @@ export function QRScanDialog({ open, onOpenChange, onScanComplete }: QRScanDialo
                     <Button 
                       onClick={startQRScanner}
                       disabled={!selectedCamera}
-                      className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 py-6"
+                      className="text-black w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 py-6"
                     >
                       <svg 
                         className="w-5 h-5 mr-2" 

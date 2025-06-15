@@ -261,13 +261,13 @@ async def notify_assigned_workers(db: AsyncSession, vaccination_drive: Vaccinati
             
             # Send Email Notification
             if user.email:
-                email_subject = f"Assignment: {vaccination_drive.vaccination_name} - VaxTrack"
+                email_subject = f"Assignment: {vaccination_drive.vaccination_name} - SureShot"
                 
                 email_html = f"""
                 <html>
                     <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
                         <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-                            <h2 style="color: #2c5aa0;">VaxTrack - Drive Assignment Notification</h2>
+                            <h2 style="color: #2c5aa0;">SureShot - Drive Assignment Notification</h2>
                             
                             <p>Dear {worker_name},</p>
                             
@@ -288,7 +288,7 @@ async def notify_assigned_workers(db: AsyncSession, vaccination_drive: Vaccinati
                             <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
                             
                             <p style="font-size: 12px; color: #666;">
-                                This is an automated message from VaxTrack. Please do not reply to this email.
+                                This is an automated message from SureShot. Please do not reply to this email.
                             </p>
                         </div>
                     </body>
@@ -307,7 +307,7 @@ async def notify_assigned_workers(db: AsyncSession, vaccination_drive: Vaccinati
                 sms_message = (
                     f"Hi {worker_name}, you've been assigned to vaccination drive "
                     f"'{vaccination_drive.vaccination_name}' in {vaccination_drive.vaccination_city} "
-                    f"starting {start_date}. Please be prepared for your duties. - VaxTrack"
+                    f"starting {start_date}. Please be prepared for your duties. - SureShot"
                 )
                 
                 twilio_service.send_sms(contact_number, sms_message)
@@ -351,13 +351,13 @@ async def notify_drive_participants(db: AsyncSession, vaccination_drive: Vaccina
                 
                 # Send Email Notification
                 if user.email:
-                    email_subject = f"New Vaccination Drive in {vaccination_drive.vaccination_city} - VaxTrack"
+                    email_subject = f"New Vaccination Drive in {vaccination_drive.vaccination_city} - SureShot"
                     
                     email_html = f"""
                     <html>
                         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
                             <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-                                <h2 style="color: #2c5aa0;">VaxTrack - New Vaccination Drive</h2>
+                                <h2 style="color: #2c5aa0;">SureShot - New Vaccination Drive</h2>
                                 
                                 <p>Dear {parent_name},</p>
                                 
@@ -377,7 +377,7 @@ async def notify_drive_participants(db: AsyncSession, vaccination_drive: Vaccina
                                 <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
                                 
                                 <p style="font-size: 12px; color: #666;">
-                                    This is an automated message from VaxTrack. Please do not reply to this email.
+                                    This is an automated message from SureShot. Please do not reply to this email.
                                 </p>
                             </div>
                         </body>
@@ -392,7 +392,7 @@ async def notify_drive_participants(db: AsyncSession, vaccination_drive: Vaccina
                     sms_message = (
                         f"Hi {parent_name}, a new vaccination drive '{vaccination_drive.vaccination_name}' "
                         f"has started in {vaccination_drive.vaccination_city} from {start_date} to {end_date}. "
-                        f"This could benefit {baby_name}. You've been enrolled as a participant. - VaxTrack"
+                        f"This could benefit {baby_name}. You've been enrolled as a participant. - SureShot"
                     )
                     
                     twilio_service.send_sms(participant.parent_mobile, sms_message)

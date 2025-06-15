@@ -31,7 +31,7 @@ IS_PRODUCTION = ENVIRONMENT == "prod"
 scheduler = AsyncIOScheduler()
 
 app = FastAPI(
-    title="Vaxtrack API - Baby Vaccination Tracker",
+    title="SureShot API - Baby Vaccination Tracker",
     description="A comprehensive API for tracking baby vaccinations",
     version="2.0.0",
     root_path="/Prod" if IS_PRODUCTION else "",
@@ -134,7 +134,7 @@ async def options_handler(request: Request):
 @app.on_event("startup")
 async def startup_event():
     """Initialize the application on startup"""
-    print("Starting Vaxtrack API...")
+    print("Starting SureShot API...")
     await populate_vaccine_templates()
     
     # Start the vaccination reminder scheduler
@@ -152,7 +152,7 @@ async def startup_event():
     except Exception as e:
         print(f"❌ Failed to start vaccination reminder scheduler: {e}")
     
-    print("Vaxtrack API startup completed")
+    print("SureShot API startup completed")
 
 @app.on_event("shutdown")
 async def shutdown_event():
@@ -165,7 +165,7 @@ async def shutdown_event():
         print(f"❌ Error shutting down scheduler: {e}")
     
     await async_engine.dispose()
-    print("Vaxtrack API shutdown completed")
+    print("SureShot API shutdown completed")
 
 @app.get("/docs", include_in_schema=False)
 async def api_documentation(request: Request):
@@ -201,7 +201,7 @@ async def root():
     return """
     <html>
         <head>
-            <title>Vaxtrack API - Baby Vaccination Tracker</title>
+            <title>SureShot API - Baby Vaccination Tracker</title>
             <style>
                 body { font-family: Arial, sans-serif; margin: 40px; }
                 .header { color: #2e7d32; }
@@ -211,7 +211,7 @@ async def root():
             </style>
         </head>
         <body>
-            <h1 class="header">🩺 Vaxtrack API - Baby Vaccination Tracker</h1>
+            <h1 class="header">🩺 SureShot API - Baby Vaccination Tracker</h1>
             <div class="section">
                 <p>A comprehensive API for tracking baby vaccinations and managing healthcare records.</p>
                 <p><strong>Version:</strong> 2.0.0</p>

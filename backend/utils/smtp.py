@@ -19,7 +19,7 @@ class SMTPEmailService:
         self.smtp_username = os.getenv("SMTP_USERNAME")  # Your Gmail address
         self.smtp_password = os.getenv("SMTP_PASSWORD")  # App password or Gmail password
         self.sender_email = os.getenv("SENDER_EMAIL", self.smtp_username)
-        self.sender_name = os.getenv("SENDER_NAME", "VaxTrack")
+        self.sender_name = os.getenv("SENDER_NAME", "SureShot")
         
         if not self.smtp_username or not self.smtp_password:
             logger.warning("SMTP credentials not configured. Email service will not work.")
@@ -163,7 +163,7 @@ class SMTPEmailService:
         <html>
             <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
                 <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-                    <h2 style="color: #2c5aa0;">VaxTrack - Vaccination Reminder</h2>
+                    <h2 style="color: #2c5aa0;">SureShot - Vaccination Reminder</h2>
                     
                     <p>Dear {parent_name},</p>
                     
@@ -181,7 +181,7 @@ class SMTPEmailService:
                     <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
                     
                     <p style="font-size: 12px; color: #666;">
-                        This is an automated message from VaxTrack. Please do not reply to this email.
+                        This is an automated message from SureShot. Please do not reply to this email.
                     </p>
                 </div>
             </body>

@@ -64,7 +64,7 @@ if DATABASE_URL:
         connect_args={
             "command_timeout": 60,
             "server_settings": {
-                "application_name": "vaxtrack_session_pool"
+                "application_name": "SureShot_session_pool"
             }
         }
     )
