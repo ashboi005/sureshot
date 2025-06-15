@@ -1,29 +1,39 @@
 "use client"
-import React, { useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
-import { Loader2 } from "lucide-react";
-import {  useSearchParams } from 'next/navigation';
 
-export default function DoctorQRRedirectPage() {
+import React, { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { Loader2 } from "lucide-react";
+
+interface PageProps {
+  params: {
+    userId: string;
+    vaccineId: string;
+  };
+}
+
+export default function DoctorQRRedirectPage({ params }: PageProps) {
   const router = useRouter();
-  const params = useParams<{ userId: string; vaccineId: string }>();
-  const searchParams = useSearchParams();
-  
-  useEffect(() => {
-    try {
+  // Cast params to the correct type before using React.use()
+  const resolvedParams = React.use(params as unknown as Promise<{ userId: string; vaccineId: string }>);    useEffect(() => {
+    // Redirect to the doctor dashboard with QR parameters
+    // This ensures the doctor's main page handles the vaccine administration
+    if (resolvedParams.userId && resolvedParams.vaccineId) {
+      // Check for dose parameter in the URL
+      const searchParams = new URLSearchParams(window.location.search);
       const doseNumber = searchParams.get('dose');
       
-      if (params.userId && params.vaccineId) {
-        const redirectUrl = `/doctor?user_id=${params.userId}&vaccine_template_id=${params.vaccineId}${doseNumber ? `&dose=${doseNumber}` : ''}`;
-        router.push(redirectUrl);
-      } else {
-        router.push('/doctor');
+      let redirectUrl = `/doctor?user_id=${resolvedParams.userId}&vaccine_template_id=${resolvedParams.vaccineId}`;
+      
+      // Add dose parameter if available
+      if (doseNumber) {
+        redirectUrl += `&dose=${doseNumber}`;
       }
-    } catch (error) {
-      console.error('Redirect failed:', error);
-      router.push('/doctor?error=redirect_failed');
+      
+      router.push(redirectUrl);
+    } else {
+      router.push('/doctor');
     }
-  }, [params.userId, params.vaccineId, router, searchParams]);
+  }, [resolvedParams.userId, resolvedParams.vaccineId, router]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100">
