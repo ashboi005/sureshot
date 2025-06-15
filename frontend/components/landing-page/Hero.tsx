@@ -30,7 +30,7 @@ export default function Hero() {
             </h1>
             
             <p className="text-gray-300 mb-8">
-              VaxTrack offers a comprehensive solution for healthcare providers 
+              SureShot offers a comprehensive solution for healthcare providers 
               to track, manage, and optimize vaccination programs with real-time 
               analytics and intuitive monitoring tools.
             </p>

@@ -11,7 +11,10 @@ import {
   ChevronRight,
   UserCircle,
   LogOut,
-  User
+  User,
+  BookText,
+  Bell,
+  Settings
 } from "lucide-react";
 import { logout } from "@/app/actions/auth";
 import useUser from "@/hooks/useUser";
@@ -48,17 +51,14 @@ function useIsMobile() {
   return !!isMobile;
 }
 
-export default function WorkerSidebar({ children }: { children: React.ReactNode }) {
+export default function UserSidebar({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const { user, loading } = useUser();
   const isMobile = useIsMobile();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Current date and user info - in a real app, you might fetch this dynamically
-  const currentDateTime = "2025-06-15 13:15:08";
-  const currentUser = "HarnoorSingh1234";
-
+ 
   const handleLogout = async () => {
     try {
       localStorage.removeItem("accessToken");
@@ -86,37 +86,38 @@ export default function WorkerSidebar({ children }: { children: React.ReactNode 
     setIsMobileMenuOpen(false);
   }, [pathname]);
 
-  // Simplified nav items - flat list instead of sections
+  // Nav items specific for users
   const navItems = [
     {
-      name: "Overview",
-      href: "/worker",
-      icon: <HomeIcon className={`h-5 w-5 ${pathname === "/worker" ? "text-[#8ed500]" : "text-gray-400"}`} />,
-      active: pathname === "/worker",
+      name: "Dashboard",
+      href: "/user",
+      icon: <HomeIcon className={`h-5 w-5 ${pathname === "/user" ? "text-[#8ed500]" : "text-gray-400"}`} />,
+      active: pathname === "/user",
     },
+   
     {
-      name: "Vaccination Drives",
-      href: "/worker/drive",
-      icon: <CalendarDays className={`h-5 w-5 ${
-        pathname === "/worker/drive" || pathname.startsWith("/worker/drive/") 
-          ? "text-[#8ed500]" 
-          : "text-gray-400"
-      }`} />,
-      active: pathname === "/worker/drive" || pathname.startsWith("/worker/drive/"),
+      name: "Profile Settings",
+      href: "/user/profile",
+      icon: <Settings className={`h-5 w-5 ${pathname === "/user/profile" ? "text-[#8ed500]" : "text-gray-400"}`} />,
+      active: pathname === "/user/profile",
     },
   ];
 
   // Map user data from useUser hook to the format expected by Sidebar component
   const userData = user ? {
-    name: user.username || user.parent_name || "Worker",
+    name: user.username || user.parent_name || "User",
     email: user.email || user.parent_email || "",
     avatarUrl: user.avatar_url || "",
-    role: user.account_type === "worker" ? "Worker" : "Health Worker"
-  } : {
+    role: user!.account_type === "user" 
+  ? "Patient" 
+  : (user!.account_type 
+      ? user!.account_type.charAt(0).toUpperCase() + user!.account_type.slice(1)
+      : "User")
+} : {
     name: "Loading...",
     email: "",
     avatarUrl: "",
-    role: "Worker"
+    role: "User"
   };
 
   const getInitials = (name?: string) => {
@@ -157,9 +158,17 @@ export default function WorkerSidebar({ children }: { children: React.ReactNode 
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                   <Avatar className="h-10 w-10 border-2 border-[#8ed500]/20 hover:border-[#8ed500]/40 transition-colors">
-                    <AvatarFallback className="bg-gradient-to-br from-[#8ed500] to-[#8ed500]/80 text-[#141414] font-semibold">
-                      {getInitials(user.email)}
-                    </AvatarFallback>
+                    {user.avatar_url ? (
+                      <img 
+                        src={user.avatar_url} 
+                        alt={user.username || user.email || "User"} 
+                        className="object-cover"
+                      />
+                    ) : (
+                      <AvatarFallback className="bg-gradient-to-br from-[#8ed500] to-[#8ed500]/80 text-[#141414] font-semibold">
+                        {getInitials(user.username || user.email)}
+                      </AvatarFallback>
+                    )}
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
@@ -173,7 +182,7 @@ export default function WorkerSidebar({ children }: { children: React.ReactNode 
                     {user?.account_type && (
                       <p className="text-xs leading-none mt-1">
                         <span className="px-2 py-1 rounded-full bg-[#8ed500]/10 text-[#8ed500] text-[10px] font-medium">
-                          {user.account_type.charAt(0).toUpperCase() + user.account_type.slice(1)}
+                          {user.account_type === "user" ? "Patient" : user.account_type.charAt(0).toUpperCase() + user.account_type.slice(1)}
                         </span>
                       </p>
                     )}
@@ -181,23 +190,13 @@ export default function WorkerSidebar({ children }: { children: React.ReactNode 
                 </DropdownMenuLabel>
                 
                 <DropdownMenuSeparator className="bg-[#333]" />
-                {user && user.account_type === 'doctor' ? (
-                  <DropdownMenuItem 
-                    className="cursor-pointer text-gray-300 hover:text-white hover:bg-[#333]" 
-                    onClick={() => router.push('/doctor/profile')}
-                  >
-                    <UserCircle className="mr-2 h-4 w-4 text-[#8ed500]" />
-                    <span>Doctor Profile</span>
-                  </DropdownMenuItem>
-                ) : (
-                  <DropdownMenuItem 
-                    className="cursor-pointer text-gray-300 hover:text-white hover:bg-[#333]" 
-                    onClick={() => router.push('/user/profile')}
-                  >
-                    <User className="mr-2 h-4 w-4 text-[#8ed500]" />
-                    <span>Edit Profile</span>
-                  </DropdownMenuItem>
-                )}
+                <DropdownMenuItem 
+                  className="cursor-pointer text-gray-300 hover:text-white hover:bg-[#333]" 
+                  onClick={() => router.push('/user/profile')}
+                >
+                  <User className="mr-2 h-4 w-4 text-[#8ed500]" />
+                  <span>Edit Profile</span>
+                </DropdownMenuItem>
                 
                 <DropdownMenuSeparator className="bg-[#333]" />
                 <DropdownMenuItem 
@@ -247,8 +246,6 @@ export default function WorkerSidebar({ children }: { children: React.ReactNode 
                 </Link>
               ))}
             </div>
-            
-            
           </motion.div>
         )}
       </AnimatePresence>

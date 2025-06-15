@@ -167,7 +167,7 @@ export function ResponsiveNavigation({ user, navItems = [] }: ResponsiveNavigati
             <div className="h-8 w-8 rounded-lg bg-[#8ed500] flex items-center justify-center">
               <span className="text-[#141414] font-bold text-sm">V</span>
             </div>
-            <span className="font-bold text-xl text-white">VaxTrack</span>
+            <span className="font-bold text-xl text-white">SureShot</span>
           </div>
         </div>
         

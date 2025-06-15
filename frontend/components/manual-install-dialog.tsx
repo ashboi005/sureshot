@@ -27,7 +27,7 @@ export function ManualInstallDialog({ isOpen, onClose }: ManualInstallDialogProp
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Install VaxTrack App</DialogTitle>
+          <DialogTitle>Install SureShot App</DialogTitle>
           <DialogDescription>
             Follow these steps to install the app on your device
           </DialogDescription>

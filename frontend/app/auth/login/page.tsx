@@ -51,7 +51,7 @@ export default function LoginPage() {
             <Syringe className="size-5" />
           </div>
           <div className="flex flex-col">
-            <span className="text-xl font-bold">VaxTrack</span>
+            <span className="text-xl font-bold">SureShot</span>
             <span className="text-xs text-[#8ed500]">Secure Vaccination System</span>
           </div>
         </motion.a>
