@@ -7,6 +7,19 @@ from datetime import datetime
 from uuid import UUID
 
 
+class WorkerIdResponse(BaseModel):
+    """Response schema for worker ID mapping"""
+    user_id: str
+    worker_id: str
+    city_name: str
+    specialization: Optional[str] = None
+    experience_years: Optional[int] = None
+    is_active: bool
+    
+    class Config:
+        from_attributes = True
+
+
 class DriveParticipantResponse(BaseModel):
     """Response schema for drive participant"""
     id: str

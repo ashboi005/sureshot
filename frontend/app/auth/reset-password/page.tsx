@@ -1,5 +1,5 @@
 "use client";
-import { useState,useEffect } from 'react';
+import { useState,useEffect, Suspense } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -11,7 +11,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import axios from 'axios';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+
 const resetPasswordSchema = z.object({
   password: z
     .string()
@@ -28,13 +29,10 @@ const resetPasswordSchema = z.object({
 
 type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
 
-interface ResetPasswordFormProps {
-  token?: string;
-  onSuccess?: () => void;
-}
-
-export default function ResetPasswordForm({ token, onSuccess }: ResetPasswordFormProps) {
+function ResetPasswordFormContent() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const token = searchParams.get('token');
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -388,10 +386,17 @@ const searchParams = new URLSearchParams(window.location.search);
                   Reset password
                 </>
               )}
-            </Button>
-          </form>
+            </Button>          </form>
         </Form>
       </CardContent>
     </Card>
+  );
+}
+
+export default function ResetPasswordForm() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ResetPasswordFormContent />
+    </Suspense>
   );
 }

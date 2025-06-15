@@ -8,13 +8,53 @@ import uuid
 from config import get_db
 from models import DoctorPatientRelationship, UserProfile, DoctorDetails
 from routers.auth.auth import get_current_user
-from .schemas import PatientResponse
+from .schemas import PatientResponse, DoctorIdResponse
 
 router = APIRouter(prefix="/doctors", tags=["doctors"])
 
+@router.get("/get-doctor-id/{user_id}", response_model=DoctorIdResponse)
+async def get_doctor_id_by_user_id(
+    user_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    """Get doctor_id for a given user_id"""
+    try:
+        # Convert string to UUID
+        user_uuid = uuid.UUID(user_id)
+        
+        # Query doctor details by user_id
+        stmt = select(DoctorDetails).where(DoctorDetails.user_id == user_uuid)
+        result = await db.execute(stmt)
+        doctor = result.scalar_one_or_none()
+        
+        if not doctor:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Doctor profile not found for user_id: {user_id}"
+            )
+        
+        return {
+            "user_id": str(doctor.user_id),
+            "doctor_id": str(doctor.id),
+            "specialization": doctor.specialization,
+            "hospital_affiliation": doctor.hospital_affiliation
+        }
+        
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid user_id format"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error retrieving doctor information: {str(e)}"
+        )
+
 @router.get("/my-patients", response_model=List[PatientResponse])
 async def get_my_patients(
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db), 
     current_user=Depends(get_current_user)
 ):
     """Get all patients linked to the current doctor"""

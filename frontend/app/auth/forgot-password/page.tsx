@@ -9,7 +9,9 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 import axios from 'axios';
+
 const forgotPasswordSchema = z.object({
   email: z
     .string()
@@ -19,13 +21,10 @@ const forgotPasswordSchema = z.object({
 
 type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 
-interface ForgotPasswordFormProps {
-  onBackToLogin?: () => void;
-}
-
-export default function ForgotPasswordForm({ onBackToLogin }: ForgotPasswordFormProps) {
+export default function ForgotPasswordForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const router = useRouter();
 
   const form = useForm<ForgotPasswordFormData>({
     resolver: zodResolver(forgotPasswordSchema),
@@ -87,15 +86,12 @@ export default function ForgotPasswordForm({ onBackToLogin }: ForgotPasswordForm
                 form.reset();
               }}
               className="w-full"
-            >
-              Try again
+            >              Try again
             </Button>
-            {onBackToLogin && (
-              <Button variant="ghost" onClick={onBackToLogin} className="w-full">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to login
-              </Button>
-            )}
+            <Button variant="ghost" onClick={() => router.push('/auth/login')} className="w-full">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to login
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -152,14 +148,12 @@ export default function ForgotPasswordForm({ onBackToLogin }: ForgotPasswordForm
                   Send reset link
                 </>
               )}
-            </Button>
-
-            {onBackToLogin && (
+            </Button>            {!isLoading && (
               <Button
                 type="button"
                 variant="ghost"
                 className="w-full"
-                onClick={onBackToLogin}
+                onClick={() => router.push('/auth/login')}
                 disabled={isLoading}
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
