@@ -42,7 +42,6 @@ export function LoginForm({
     resolver: zodResolver(formSchema),
   })
   const router = useRouter()
-  // Function to fetch doctor ID if the user is a doctor
   const fetchDoctorId = async (userId: string, token: string) => {
     try {
       const response = await axios.get(
@@ -54,10 +53,8 @@ export function LoginForm({
         }
       );      console.log('Doctor ID response:', response.data);
       if (response.data?.doctor_id) {
-        // Store in Jotai atom only
         setDoctorId(response.data.doctor_id);
         
-        // Also store doctor details if available
         setDoctorDetails({
           doctorId: response.data.doctor_id,
           specialization: response.data.specialization,
@@ -68,7 +65,6 @@ export function LoginForm({
       }
     } catch (error) {
       console.error('Error fetching doctor ID:', error);
-      // Non-blocking error - we continue login process but log the error
     }
   };
 
@@ -81,11 +77,9 @@ export function LoginForm({
         const userRole = response.data.user.account_type;
         const userId = response.data.user.user_id;
         
-        // Store token in localStorage
         localStorage.setItem('accessToken', accessToken);
         localStorage.setItem('userRole', userRole);
         
-        // Set cookies
         document.cookie = `accessToken=${accessToken}; Path=/; ${
           process.env.NODE_ENV === 'production' ? 'Secure; HttpOnly; SameSite=Strict' : ''
         }${response.data.expires_in ? `; Max-Age=${response.data.expires_in}` : ''}`;
@@ -94,13 +88,12 @@ export function LoginForm({
           process.env.NODE_ENV === 'production' ? 'Secure; HttpOnly; SameSite=Strict' : ''
         }${response.data.expires_in ? `; Max-Age=${response.data.expires_in}` : ''}`;
         
-        // If user is a doctor, fetch doctor ID
         if (userRole === 'doctor') {
           await fetchDoctorId(userId, accessToken);
         }
         
         toast.success('Login successful!');
-        router.push('/');
+        router.push('/user');
       } else {
         toast.error('Login failed. Please try again.');
       }
