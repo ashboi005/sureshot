@@ -23,7 +23,7 @@ India’s vaccination system still faces huge challenges due to paper-based reco
 [Harnoor Singh Arora](https://github.com/HarnoorSingh1234)
 [Swayam Bhalotia](https://github.com/Qilton)
 
-Solution Explainer Video: [YouTube Link Placeholder]
+Solution Explainer Video: https://drive.google.com/file/d/1H4ZEuDdB5NKqjjs_iDjiU67RuqBba-vq/view?usp=drivesdk
 Live Demo: https://sureshot-tutedude.vercel.app
 
 Note: if it's been some while since this post was mode, there is a good chance the live demo has stopped working since Supabase automatically pauses inactive projects after 
